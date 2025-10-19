@@ -35,6 +35,10 @@ public class Reseau {
             problemes.add("Aucun generateur definie, veuillez definir au moins un generateur.");
         }
 
+        if(!problemes.isEmpty()){
+            return problemes;
+        }
+
         for (String nomMaison : maisons.keySet()) {
             if (!connexions.containsKey(nomMaison)) {
                 problemes.add(nomMaison + " (n'est pas connectée)");

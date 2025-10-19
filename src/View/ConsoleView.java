@@ -127,6 +127,9 @@ public class ConsoleView {
         if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
             nomMaison = nom1;
             nomGenerateur = nom2;
+        }else{
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
         }
 
         String generateurExiste = reseau.getConnexionPourMaison(nomMaison);
@@ -135,12 +138,9 @@ public class ConsoleView {
             return;
         }
 
-        if (nomMaison != null) {
-            controller.addConnexion(nomMaison, nomGenerateur);
-            afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
-        } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
-        }
+        controller.addConnexion(nomMaison, nomGenerateur);
+        afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
+
     }
 
     private void traiterModificationConnexion() {
