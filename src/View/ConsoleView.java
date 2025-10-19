@@ -127,9 +127,12 @@ public class ConsoleView {
         if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
             nomMaison = nom1;
             nomGenerateur = nom2;
-        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
-            nomMaison = nom2;
-            nomGenerateur = nom1;
+        }
+
+        String generateurExiste = reseau.getConnexionPourMaison(nomMaison);
+        if(generateurExiste != null){
+            afficherErreur("La maison " + nomMaison + " est deja connectee avec le generateur " + generateurExiste + ".");
+            return;
         }
 
         if (nomMaison != null) {

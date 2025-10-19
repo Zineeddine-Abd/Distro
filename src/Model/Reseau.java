@@ -12,7 +12,7 @@ import java.util.Map;
 public class Reseau {
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
-    private final Map<String, String> connexions = new HashMap<>(); // Key : nomMaison, Value : nomGenerateur
+    private final Map<String, String> connexions = new HashMap<>(); // {Key : nomMaison, Value : nomGenerateur}
 
     // --- Methodes pour la gestion du reseau ---
     public boolean maisonExiste(String nom) { return maisons.containsKey(nom); }
@@ -26,14 +26,33 @@ public class Reseau {
     public List<String> validerConfiguration() {
 
         List<String> problemes = new ArrayList<>();
+
+        if(maisons.isEmpty()){
+            problemes.add("Aucune maison definie, veuillez definir au moins une maison.");
+        }
+
+        if(generateurs.isEmpty()){
+            problemes.add("Aucun generateur definie, veuillez definir au moins un generateur.");
+        }
+
         for (String nomMaison : maisons.keySet()) {
             if (!connexions.containsKey(nomMaison)) {
                 problemes.add(nomMaison + " (n'est pas connectée)");
             }
         }
 
-        if(connexions.isEmpty()) {
-            problemes.add("Aucune connexion defenie, veuillez definir au moins une connexion.");
+        int capaciteGenerateurs = 0;
+        for (Generateur generateur : generateurs.values()) {
+            capaciteGenerateurs = capaciteGenerateurs + generateur.getCapaciteMax();
+        }
+
+        int chargesMaisons = 0;
+        for (Maison maison : maisons.values()) {
+            chargesMaisons = chargesMaisons + maison.getConsommationKw();
+        }
+
+        if(capaciteGenerateurs < chargesMaisons){
+            problemes.add("La capacite totale des generateurs est insuffisante pour alimenter toutes les maisons.");
         }
 
         return problemes;
