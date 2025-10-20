@@ -122,7 +122,7 @@ public class ConsoleView {
         }
         Reseau reseau = controller.getReseau();
         String nom1 = entrees[0], nom2 = entrees[1];
-        String nomMaison = null, nomGenerateur = null;
+        String nomMaison, nomGenerateur;
 
         if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
             nomMaison = nom1;
