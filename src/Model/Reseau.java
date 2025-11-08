@@ -15,47 +15,83 @@ public class Reseau {
     private final Map<String, String> connexions = new HashMap<>(); // {Key : nomMaison, Value : nomGenerateur}
 
     // --- Methodes pour la gestion du reseau ---
-    public boolean maisonExiste(String nom) { return maisons.containsKey(nom); }
-    public boolean generateurExiste(String nom) { return generateurs.containsKey(nom); }
-    public void addOrUpdateMaison(Maison maison) { maisons.put(maison.getNom(), maison); }
-    public void addOrUpdateGenerateur(Generateur generateur) { generateurs.put(generateur.getNom(), generateur); }
-    public void creerConnexion(String nomMaison, String nomGenerateur) { connexions.put(nomMaison, nomGenerateur); }
-    public String getConnexionPourMaison(String nomMaison) { return connexions.get(nomMaison); }
-    public boolean connexionExiste(String nomMaison, String nomGenerateur) { return nomGenerateur.equals(connexions.get(nomMaison)); }
+    public boolean maisonExiste(String nom) {
+        return maisons.containsKey(nom);
+    }
+
+    public boolean generateurExiste(String nom) {
+        return generateurs.containsKey(nom);
+    }
+
+    public void addOrUpdateMaison(Maison maison) {
+        maisons.put(maison.getNom(), maison);
+    }
+
+    public void addOrUpdateGenerateur(Generateur generateur) {
+        generateurs.put(generateur.getNom(), generateur);
+    }
+
+    public void creerConnexion(String nomMaison, String nomGenerateur) {
+        connexions.put(nomMaison, nomGenerateur);
+    }
+
+    public void supprimerConnexion(String nomMaison, String nomGenerateur) {
+        connexions.remove(nomMaison);
+    }
+
+    public String getConnexionPourMaison(String nomMaison) {
+        return connexions.get(nomMaison);
+    }
+
+    public boolean connexionExiste(String nomMaison, String nomGenerateur) {
+        return nomGenerateur.equals(connexions.get(nomMaison));
+    }
 
     public List<String> validerConfiguration() {
-
         List<String> problemes = new ArrayList<>();
 
-        if(maisons.isEmpty()){
+        if (maisons.isEmpty()) {
             problemes.add("Aucune maison definie, veuillez definir au moins une maison.");
         }
 
-        if(generateurs.isEmpty()){
+        if (generateurs.isEmpty()) {
             problemes.add("Aucun generateur definie, veuillez definir au moins un generateur.");
         }
 
-        if(!problemes.isEmpty()){
+        if (!problemes.isEmpty()) {
             return problemes;
         }
 
+        Map<String, Integer> compteurConnexions = new HashMap<>();
         for (String nomMaison : maisons.keySet()) {
-            if (!connexions.containsKey(nomMaison)) {
-                problemes.add(nomMaison + " (n'est pas connectée)");
+            compteurConnexions.put(nomMaison, 0);
+        }
+
+        for (String nomMaison : connexions.keySet()) {
+            compteurConnexions.put(nomMaison, compteurConnexions.getOrDefault(nomMaison, 0) + 1);
+        }
+
+        for (Map.Entry<String, Integer> entry : compteurConnexions.entrySet()) {
+            String nomMaison = entry.getKey();
+            int nbConnexions = entry.getValue();
+            if (nbConnexions == 0) {
+                problemes.add(nomMaison + " (pas de connexion)");
+            } else if (nbConnexions > 1) {
+                problemes.add(nomMaison + " (trop de connexions)");
             }
         }
 
         int capaciteGenerateurs = 0;
         for (Generateur generateur : generateurs.values()) {
-            capaciteGenerateurs = capaciteGenerateurs + generateur.getCapaciteMax();
+            capaciteGenerateurs += generateur.getCapaciteMax();
         }
 
         int chargesMaisons = 0;
         for (Maison maison : maisons.values()) {
-            chargesMaisons = chargesMaisons + maison.getConsommationKw();
+            chargesMaisons += maison.getConsommationKw();
         }
 
-        if(capaciteGenerateurs < chargesMaisons){
+        if (capaciteGenerateurs < chargesMaisons) {
             problemes.add("La capacite totale des generateurs est insuffisante pour alimenter toutes les maisons.");
         }
 
@@ -63,14 +99,23 @@ public class Reseau {
     }
 
     // --- Getters ---
-    public Map<String, Maison> getMaisons() { return maisons; }
-    public Map<String, Generateur> getGenerateurs() { return generateurs; }
-    public Map<String, String> getConnexions() { return connexions; }
+    public Map<String, Maison> getMaisons() {
+        return maisons;
+    }
+
+    public Map<String, Generateur> getGenerateurs() {
+        return generateurs;
+    }
+
+    public Map<String, String> getConnexions() {
+        return connexions;
+    }
 
     // --- Methodes de calcul du cout ---
     public double[] calculerCout() {
 
-        if (generateurs.isEmpty()) return new double[]{0, 0, 0};
+        if (generateurs.isEmpty())
+            return new double[] { 0, 0, 0 };
 
         Map<String, Integer> charges = calculerCharges();
         Map<String, Double> tauxUtilisation = calculerTauxUtilisation(charges);
@@ -82,7 +127,7 @@ public class Reseau {
         final int LAMBDA = 10;
         double coutTotal = dispersion + LAMBDA * surcharge;
 
-        return new double[]{coutTotal, dispersion, surcharge};
+        return new double[] { coutTotal, dispersion, surcharge };
     }
 
     private Map<String, Integer> calculerCharges() {
