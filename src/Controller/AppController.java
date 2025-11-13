@@ -37,7 +37,8 @@ public class AppController {
         reseau.supprimerConnexion(nomMaison, nomGenerateur);
     }
 
-    public void modifierConnexion(String nomMaison, String nomNouveauGenerateur) {
+    public void modifierConnexion(String nomMaison, String nomNouveauGenerateur, String nomMaisonAncienne, String nomGenerateurAncien) {
+        reseau.supprimerConnexion(nomMaisonAncienne, nomGenerateurAncien);
         reseau.creerConnexion(nomMaison, nomNouveauGenerateur);
     }
 

@@ -194,8 +194,20 @@ public class ConsoleView {
             afficherErreur("Format incorrect");
             return;
         }
-        String nomMaisonAncienne = reseau.maisonExiste(ancienne[0]) ? ancienne[0] : ancienne[1];
-        String nomGenAncien = reseau.generateurExiste(ancienne[1]) ? ancienne[1] : ancienne[0];
+
+        String nom1 = ancienne[0], nom2 = ancienne[1];
+        String nomMaisonAncienne, nomGenAncien;
+
+        if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
+            nomMaisonAncienne = nom1;
+            nomGenAncien = nom2;
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaisonAncienne = nom2;
+            nomGenAncien = nom1;
+        } else {
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
+        }
 
         if (!reseau.connexionExiste(nomMaisonAncienne, nomGenAncien)) {
             afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n'existe pas");
@@ -208,15 +220,29 @@ public class ConsoleView {
             afficherErreur("Format incorrect");
             return;
         }
-        String nomMaisonNouvelle = reseau.maisonExiste(nouvelle[0]) ? nouvelle[0] : nouvelle[1];
-        String nomGenNouveau = reseau.generateurExiste(nouvelle[1]) ? nouvelle[1] : nouvelle[0];
+
+        nom1 = nouvelle[0];
+        nom2 = nouvelle[1];
+
+        String nomMaisonNouvelle, nomGenNouveau;
+
+        if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
+            nomMaisonNouvelle = nom1;
+            nomGenNouveau = nom2;
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaisonNouvelle = nom2;
+            nomGenNouveau = nom1;
+        } else {
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
+        }
 
         if (!nomMaisonAncienne.equals(nomMaisonNouvelle) || !reseau.generateurExiste(nomGenNouveau)) {
             afficherErreur("Saisie invalide (la maison doit etre la meme, le nouveau generateur doit exister).");
             return;
         }
 
-        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
+        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau, nomMaisonAncienne, nomGenAncien);
         afficherMessage(
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
     }
