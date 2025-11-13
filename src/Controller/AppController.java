@@ -5,7 +5,8 @@ import java.util.List;
 
 /**
  * Il contient toute la logique applicative et agit comme un
- * intermidiaire entre la Vue (Affichage) et le Modele (calcule et logique metier/stockage).
+ * intermidiaire entre la Vue (Affichage) et le Modele (calcule et logique
+ * metier/stockage).
  */
 public class AppController {
     private final Reseau reseau;
@@ -32,7 +33,12 @@ public class AppController {
         reseau.creerConnexion(nomMaison, nomGenerateur);
     }
 
-    public void modifierConnexion(String nomMaison, String nomNouveauGenerateur) {
+    public void supprimerConnexion(String nomMaison, String nomGenerateur) {
+        reseau.supprimerConnexion(nomMaison, nomGenerateur);
+    }
+
+    public void modifierConnexion(String nomMaison, String nomNouveauGenerateur, String nomMaisonAncienne, String nomGenerateurAncien) {
+        reseau.supprimerConnexion(nomMaisonAncienne, nomGenerateurAncien);
         reseau.creerConnexion(nomMaison, nomNouveauGenerateur);
     }
 

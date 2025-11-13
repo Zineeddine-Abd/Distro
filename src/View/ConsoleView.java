@@ -35,10 +35,19 @@ public class ConsoleView {
             afficherMenuPrincipal();
             String choix = scanner.nextLine();
             switch (choix) {
-                case "1": traiterAjoutGenerateur(); break;
-                case "2": traiterAjoutMaison(); break;
-                case "3": traiterAjoutConnexion(); break;
+                case "1":
+                    traiterAjoutGenerateur();
+                    break;
+                case "2":
+                    traiterAjoutMaison();
+                    break;
+                case "3":
+                    traiterAjoutConnexion();
+                    break;
                 case "4":
+                    traiterSuppressionConnexion();
+                    break;
+                case "5":
                     List<String> problemes = controller.validerConfigurationReseau();
                     if (problemes.isEmpty()) {
                         afficherMessage("Configuration terminee et validee");
@@ -48,7 +57,8 @@ public class ConsoleView {
                         afficherProblemesConfiguration(problemes);
                     }
                     break;
-                default: afficherErreur("Choix invalide. Veuillez reessayer.");
+                default:
+                    afficherErreur("Choix invalide. Veuillez reessayer.");
             }
         }
     }
@@ -63,13 +73,18 @@ public class ConsoleView {
                     double[] couts = controller.calculerCoutReseau();
                     afficherCout(couts[0], couts[1], couts[2]);
                     break;
-                case "2": traiterModificationConnexion(); break;
-                case "3": afficherReseau(controller.getReseau()); break;
+                case "2":
+                    traiterModificationConnexion();
+                    break;
+                case "3":
+                    afficherReseau(controller.getReseau());
+                    break;
                 case "4":
                     quitter = true;
                     System.out.println("Programme termine");
                     break;
-                default: afficherErreur("Choix invalide. Veuillez reessayer.");
+                default:
+                    afficherErreur("Choix invalide. Veuillez reessayer.");
             }
         }
     }
@@ -127,7 +142,10 @@ public class ConsoleView {
         if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
             nomMaison = nom1;
             nomGenerateur = nom2;
-        }else{
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaison = nom2;
+            nomGenerateur = nom1;
+        } else {
             afficherErreur("La maison ou le generateur specifie n'existe pas.");
             return;
         }
@@ -140,7 +158,37 @@ public class ConsoleView {
 
         controller.addConnexion(nomMaison, nomGenerateur);
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
+    }
 
+    private void traiterSuppressionConnexion() {
+        System.out.print("Entrez le nom de la maison et du generateur à deconnecter (ex: M1 G1) : ");
+        String[] entrees = scanner.nextLine().split(" ");
+        if (entrees.length != 2) {
+            afficherErreur("Format incorrect");
+            return;
+        }
+        Reseau reseau = controller.getReseau();
+        String nom1 = entrees[0], nom2 = entrees[1];
+        String nomMaison, nomGenerateur;
+
+        if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
+            nomMaison = nom1;
+            nomGenerateur = nom2;
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaison = nom2;
+            nomGenerateur = nom1;
+        } else {
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
+        }
+
+        if (!reseau.connexionExiste(nomMaison, nomGenerateur)) {
+            afficherErreur("La connexion entre " + nomMaison + " et " + nomGenerateur + " n'existe pas.");
+            return;
+        }
+
+        controller.supprimerConnexion(nomMaison, nomGenerateur);
+        afficherMessage("Connexion supprimee entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
     private void traiterModificationConnexion() {
@@ -152,8 +200,20 @@ public class ConsoleView {
             afficherErreur("Format incorrect");
             return;
         }
-        String nomMaisonAncienne = reseau.maisonExiste(ancienne[0]) ? ancienne[0] : ancienne[1];
-        String nomGenAncien = reseau.generateurExiste(ancienne[1]) ? ancienne[1] : ancienne[0];
+
+        String nom1 = ancienne[0], nom2 = ancienne[1];
+        String nomMaisonAncienne, nomGenAncien;
+
+        if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
+            nomMaisonAncienne = nom1;
+            nomGenAncien = nom2;
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaisonAncienne = nom2;
+            nomGenAncien = nom1;
+        } else {
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
+        }
 
         if (!reseau.connexionExiste(nomMaisonAncienne, nomGenAncien)) {
             afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n'existe pas");
@@ -166,16 +226,31 @@ public class ConsoleView {
             afficherErreur("Format incorrect");
             return;
         }
-        String nomMaisonNouvelle = reseau.maisonExiste(nouvelle[0]) ? nouvelle[0] : nouvelle[1];
-        String nomGenNouveau = reseau.generateurExiste(nouvelle[1]) ? nouvelle[1] : nouvelle[0];
+
+        nom1 = nouvelle[0];
+        nom2 = nouvelle[1];
+
+        String nomMaisonNouvelle, nomGenNouveau;
+
+        if (reseau.maisonExiste(nom1) && reseau.generateurExiste(nom2)) {
+            nomMaisonNouvelle = nom1;
+            nomGenNouveau = nom2;
+        } else if (reseau.maisonExiste(nom2) && reseau.generateurExiste(nom1)) {
+            nomMaisonNouvelle = nom2;
+            nomGenNouveau = nom1;
+        } else {
+            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            return;
+        }
 
         if (!nomMaisonAncienne.equals(nomMaisonNouvelle) || !reseau.generateurExiste(nomGenNouveau)) {
             afficherErreur("Saisie invalide (la maison doit etre la meme, le nouveau generateur doit exister).");
             return;
         }
 
-        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
-        afficherMessage("Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
+        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau, nomMaisonAncienne, nomGenAncien);
+        afficherMessage(
+                "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
     }
 
     // --- Methodes d'affichage ---
@@ -184,7 +259,8 @@ public class ConsoleView {
         System.out.println("1) Ajouter un generateur");
         System.out.println("2) Ajouter une maison");
         System.out.println("3) Ajouter une connexion");
-        System.out.println("4) Fin de la configuration");
+        System.out.println("4) Supprimer une connexion existante");
+        System.out.println("5) Fin de la configuration");
         System.out.print("Votre choix : ");
     }
 
