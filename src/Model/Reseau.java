@@ -62,22 +62,9 @@ public class Reseau {
             return problemes;
         }
 
-        Map<String, Integer> compteurConnexions = new HashMap<>();
         for (String nomMaison : maisons.keySet()) {
-            compteurConnexions.put(nomMaison, 0);
-        }
-
-        for (String nomMaison : connexions.keySet()) {
-            compteurConnexions.put(nomMaison, compteurConnexions.getOrDefault(nomMaison, 0) + 1);
-        }
-
-        for (Map.Entry<String, Integer> entry : compteurConnexions.entrySet()) {
-            String nomMaison = entry.getKey();
-            int nbConnexions = entry.getValue();
-            if (nbConnexions == 0) {
-                problemes.add(nomMaison + " (pas de connexion)");
-            } else if (nbConnexions > 1) {
-                problemes.add(nomMaison + " (trop de connexions)");
+            if (!connexions.containsKey(nomMaison)) {
+                problemes.add(nomMaison + " (n'est pas connectée)");
             }
         }
 
