@@ -10,8 +10,11 @@ import java.util.Map;
  * Gere toute la logique de calcul de cout.
  */
 public class Reseau {
+    // miex que arraylist pour recherche et aussi mise a jour rapide
+    // aussi pour garder l'unicite des noms
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
+
     private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value : List<nomGenerateur>}
 
     // --- Methodes pour la gestion du reseau ---
@@ -127,7 +130,7 @@ public class Reseau {
 
     /**
      * Le calcul de coût ne fonctionne QUE sur un réseau valide.
-     * On suppose qu'il n'est appelé que lorsque la configuration est valide.
+     * On suppose qu'il n'est appelé toujours que lorsque la configuration est valide.
      * Cette méthode ne comptera la charge que pour les maisons ayant UNE SEULE connexion.
      */
     public double[] calculerCout() {
@@ -147,9 +150,10 @@ public class Reseau {
         return new double[] { coutTotal, dispersion, surcharge };
     }
 
+    // Calcule la charge totale pour chaque générateur (la somme des capacite des masions connectés).
     private Map<String, Integer> calculerCharges() {
         Map<String, Integer> charges = new HashMap<>();
-        generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges à 0
+        generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges a 0
 
         for (Map.Entry<String, List<String>> entry : connexions.entrySet()) {
             String nomMaison = entry.getKey();
@@ -170,6 +174,7 @@ public class Reseau {
         return charges;
     }
 
+    // Calcule le taux d'utilisation pour chaque générateur.
     private Map<String, Double> calculerTauxUtilisation(Map<String, Integer> charges) {
         Map<String, Double> taux = new HashMap<>();
         for (Generateur gen : generateurs.values()) {

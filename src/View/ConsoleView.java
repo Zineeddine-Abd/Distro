@@ -12,9 +12,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-/**
- * Gere tous les affichages et les saisies de la console.
- */
+
+// Gere tous les affichages et les saisies de la console.
 public class ConsoleView {
     private final AppController controller;
     private final Scanner scanner;
@@ -24,12 +23,13 @@ public class ConsoleView {
         this.scanner = new Scanner(System.in);
     }
 
-    /** Demarrage la boucle principale de l'application. */
+    // Demarrage la boucle principale de l'application.
     public void start() {
         gererMenuConfiguration();
     }
 
     // --- Gestion des menus ---
+    // Menu 1 : Configuration du reseau
     private void gererMenuConfiguration() {
         boolean configurationTerminee = false;
         while (!configurationTerminee) {
@@ -64,6 +64,7 @@ public class ConsoleView {
         }
     }
 
+    //Menu 2 : Analyse du reseau
     private void gererMenuAnalyse() {
         boolean quitter = false;
         while (!quitter) {
@@ -90,7 +91,8 @@ public class ConsoleView {
         }
     }
 
-    // --- Logique de traitement des entrées utilisateur ---
+    // --- Logique de traitement des entrees utilisateur ---
+    // Ajout d'un generateur
     private void traiterAjoutGenerateur() {
         System.out.print("Entrez le nom et la capacite du generateur (ex: G1 60) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -109,6 +111,7 @@ public class ConsoleView {
         }
     }
 
+    // Ajout d'une maison
     private void traiterAjoutMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -129,6 +132,7 @@ public class ConsoleView {
         }
     }
 
+    // Ajout d'une connexion entre une maison et un generateur
     private void traiterAjoutConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur à connecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -155,6 +159,7 @@ public class ConsoleView {
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
+    // Suppression d'une connexion entre une maison et un generateur
     private void traiterSuppressionConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur à deconnecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -186,6 +191,7 @@ public class ConsoleView {
         afficherMessage("Connexion supprimee entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
+    // Modification d'une connexion existante
     private void traiterModificationConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -239,7 +245,7 @@ public class ConsoleView {
         }
 
         if (!nomMaisonAncienne.equals(nomMaisonNouvelle) || !reseau.generateurExiste(nomGenNouveau)) {
-            afficherErreur("Saisie invalide (la maison doit etre la meme, le nouveau generateur doit exister).");
+            afficherErreur("Saisie invalide (la maison doit etre la meme, et le nouveau generateur doit exister)");
             return;
         }
 
@@ -249,7 +255,8 @@ public class ConsoleView {
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
     }
 
-    // --- Methodes d'affichage ---
+    // --- Methodes d'affichage ---7
+    // Affichage du menu principal
     public void afficherMenuPrincipal() {
         System.out.println("\n--- MENU DE CONFIGURATION ---");
         System.out.println("1) Ajouter un generateur");
@@ -260,6 +267,7 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    // Affichage du menu d'analyse
     public void afficherMenuAnalyse() {
         System.out.println("\n--- MENU D'ANALYSE ---");
         System.out.println("1) Calculer le cout du reseau electrique actuel");
@@ -269,6 +277,7 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    // --- Messages d'information ---
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
@@ -310,7 +319,6 @@ public class ConsoleView {
                 maisonsParGenerateur.put(nomGenerateur, new ArrayList<>());
             }
 
-            // Parcourt la nouvelle structure de connexions
             for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
                 String nomMaison = entry.getKey();
                 List<String> generateursConnectes = entry.getValue();
@@ -323,16 +331,15 @@ public class ConsoleView {
                 }
             }
 
-            // L'affichage des générateurs fonctionne maintenant
             for (Generateur gen : reseau.getGenerateurs().values()) {
                 System.out.printf("- %s (Capacite: %d kW)\n", gen.getNom(), gen.getCapaciteMax());
                 List<String> maisonsConnectees = maisonsParGenerateur.getOrDefault(gen.getNom(), new ArrayList<>());
                 if (maisonsConnectees.isEmpty()) {
-                    System.out.println("  -> Ne dessert aucune maison.");
+                    System.out.println("  -> Ne connecte aucune maison.");
                 } else {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
-                        if (maison != null) { // Vérification de sécurité
+                        if (maison != null) {
                             System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
                         }
                     }
@@ -345,7 +352,7 @@ public class ConsoleView {
         } else {
             System.out.println("\n>> Liste des maisons :");
             for (Maison maison : reseau.getMaisons().values()) {
-                // Logique modifiée pour afficher le statut (0, 1, ou plusieurs connexions)
+
                 List<String> gens = reseau.getConnexions().get(maison.getNom());
                 String statut;
                 if (gens == null || gens.isEmpty()) {

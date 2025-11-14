@@ -5,8 +5,7 @@ import java.util.List;
 
 /**
  * Il contient toute la logique applicative et agit comme un
- * intermidiaire entre la Vue (Affichage) et le Modele (calcule et logique
- * metier/stockage).
+ * intermidiaire entre la Vue (Affichage) et le Modele (calcule et logique metier/stockage).
  */
 public class AppController {
     private final Reseau reseau;
@@ -49,7 +48,7 @@ public class AppController {
         return reseau.calculerCout();
     }
 
-    // --- Getter pour que la Vue puisse accéder aux donnees ---
+    // --- Getter pour que la Vue puisse acceder aux reseau ---
     public Reseau getReseau() {
         return reseau;
     }
