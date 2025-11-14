@@ -7,6 +7,7 @@ import Model.Reseau;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -242,7 +243,8 @@ public class ConsoleView {
             return;
         }
 
-        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau, nomMaisonAncienne, nomGenAncien);
+        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
+
         afficherMessage(
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
     }
@@ -301,11 +303,27 @@ public class ConsoleView {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
             System.out.println("\n>> Genérateurs et connexions :");
-            // On a Regrouper les maisons par genérateur pour mieux affichee
-            Map<String, List<String>> maisonsParGenerateur = reseau.getConnexions().entrySet().stream()
-                    .collect(Collectors.groupingBy(Map.Entry::getValue,
-                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
 
+            // Recrée la map inversée (Générateur -> Liste de Maisons) manuellement
+            Map<String, List<String>> maisonsParGenerateur = new HashMap<>();
+            for (String nomGenerateur : reseau.getGenerateurs().keySet()) {
+                maisonsParGenerateur.put(nomGenerateur, new ArrayList<>());
+            }
+
+            // Parcourt la nouvelle structure de connexions
+            for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
+                String nomMaison = entry.getKey();
+                List<String> generateursConnectes = entry.getValue();
+
+                // Ajoute la maison à la liste de CHACUN de ses générateurs
+                for (String nomGenerateur : generateursConnectes) {
+                    if (maisonsParGenerateur.containsKey(nomGenerateur)) {
+                        maisonsParGenerateur.get(nomGenerateur).add(nomMaison);
+                    }
+                }
+            }
+
+            // L'affichage des générateurs fonctionne maintenant
             for (Generateur gen : reseau.getGenerateurs().values()) {
                 System.out.printf("- %s (Capacite: %d kW)\n", gen.getNom(), gen.getCapaciteMax());
                 List<String> maisonsConnectees = maisonsParGenerateur.getOrDefault(gen.getNom(), new ArrayList<>());
@@ -314,7 +332,9 @@ public class ConsoleView {
                 } else {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
-                        System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                        if (maison != null) { // Vérification de sécurité
+                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                        }
                     }
                 }
             }
@@ -325,8 +345,17 @@ public class ConsoleView {
         } else {
             System.out.println("\n>> Liste des maisons :");
             for (Maison maison : reseau.getMaisons().values()) {
-                String genConnecte = reseau.getConnexionPourMaison(maison.getNom());
-                String statut = (genConnecte != null) ? "connectee à " + genConnecte : "non connectee";
+                // Logique modifiée pour afficher le statut (0, 1, ou plusieurs connexions)
+                List<String> gens = reseau.getConnexions().get(maison.getNom());
+                String statut;
+                if (gens == null || gens.isEmpty()) {
+                    statut = "non connectee";
+                } else if (gens.size() == 1) {
+                    statut = "connectee à " + gens.get(0);
+                } else {
+                    statut = "connectee à PLUSIEURS: " + String.join(", ", gens);
+                }
+
                 System.out.printf("- %s (%s kW) - %s\n", maison.getNom(), maison.getConsommation().name(), statut);
             }
         }
