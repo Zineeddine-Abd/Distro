@@ -9,34 +9,42 @@ import java.util.Map;
  * Represente le reseau electrique : maisons, generateurs et connexions.
  * Gere toute la logique de calcul de cout.
  */
+
 public class Reseau {
-    // miex que arraylist pour recherche et aussi mise a jour rapide
+    // Justification d'utilisation de Map plutot que List dans la representation des maisons et generateurs :
+    // mieux pour recherche et aussi la mise a jour rapide
     // aussi pour garder l'unicite des noms
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
-
+    // La map des connexions : chaque maison peut etre connectee a plusieurs generateurs dans le premier menu
+    // C'est pour ca qu'on utilise une List pour les generateurs
+    // Aussi l'utilisation de String pour les noms permet de simplifier la recherche
     private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value : List<nomGenerateur>}
 
     // --- Methodes pour la gestion du reseau ---
+    // Verifie si une maison existe deja dans le reseau
     public boolean maisonExiste(String nom) {
         return maisons.containsKey(nom);
     }
 
+    // Verifie si un generateur existe deja dans le reseau
     public boolean generateurExiste(String nom) {
         return generateurs.containsKey(nom);
     }
 
+    // Ajoute ou met a jour une maison dans le reseau
     public void addOrUpdateMaison(Maison maison) {
         maisons.put(maison.getNom(), maison);
     }
 
+    // Ajoute ou met a jour un generateur dans le reseau
     public void addOrUpdateGenerateur(Generateur generateur) {
         generateurs.put(generateur.getNom(), generateur);
     }
 
     // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est ajoutée à la liste.
     public void creerConnexion(String nomMaison, String nomGenerateur) {
-        // computeIfAbsent: Récupère la liste pour la maison, ou en crée une nouvelle si elle n'existe pas.
+        // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si elle n'existe pas.
         // .add() : Ajoute le générateur à cette liste.
         connexions.computeIfAbsent(nomMaison, k -> new ArrayList<>()).add(nomGenerateur);
     }
@@ -65,7 +73,7 @@ public class Reseau {
         return gens != null && gens.contains(nomGenerateur);
     }
 
-     // verifie les 3 cas : pas de connexion, 1 connexion (valide), et trop de connexions.
+     // Valide la configuration du reseau et retourne une liste de problemes trouves.
     public List<String> validerConfiguration() {
 
         List<String> problemes = new ArrayList<>();
@@ -133,6 +141,9 @@ public class Reseau {
      * On suppose qu'il n'est appelé toujours que lorsque la configuration est valide.
      * Cette méthode ne comptera la charge que pour les maisons ayant UNE SEULE connexion.
      */
+
+    // Calcule le cout total du reseau en fonction de la dispersion et de la surcharge.
+    // Retourne un tableau de double : [coutTotal, dispersion, surcharge]
     public double[] calculerCout() {
         if (generateurs.isEmpty())
             return new double[] { 0, 0, 0 };
@@ -185,10 +196,12 @@ public class Reseau {
         return taux;
     }
 
+    // Calcule la dispersion des taux d'utilisation par rapport à la moyenne.
     private double calculerDispersion(Map<String, Double> tauxUtilisation, double moyenneTaux) {
         return tauxUtilisation.values().stream().mapToDouble(taux -> Math.abs(taux - moyenneTaux)).sum();
     }
 
+    // Calcule la surcharge totale des generateurs.
     private double calculerSurcharge(Map<String, Integer> charges) {
         double surcharge = 0.0;
         for (Generateur gen : generateurs.values()) {

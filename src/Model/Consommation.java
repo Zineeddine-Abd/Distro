@@ -1,8 +1,8 @@
 package Model;
 
-/**
- * Représente les catégories de consommation d'une maison.
- **/
+
+// Représente les catégories de consommation d'une maison.
+
 public enum Consommation {
     BASSE(10),
     NORMALE(20),

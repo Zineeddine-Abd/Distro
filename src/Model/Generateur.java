@@ -2,6 +2,9 @@ package Model;
 
 import java.util.Objects;
 
+
+// Representation d'un generateur dans le reseau.
+
 public class Generateur {
     private final String nom;
     private int capaciteMax;
@@ -20,9 +23,9 @@ public class Generateur {
 
     @Override
     public boolean equals(Object o) {
-
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Generateur that = (Generateur) o;
         return Objects.equals(nom, that.nom);
     }

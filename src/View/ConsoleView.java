@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-
 // Gere tous les affichages et les saisies de la console.
+
 public class ConsoleView {
     private final AppController controller;
     private final Scanner scanner;
@@ -281,15 +281,14 @@ public class ConsoleView {
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
-
     public void afficherAvertissement(String message) {
         System.out.println("AVERTISSEMENT: " + message);
     }
-
     public void afficherErreur(String message) {
         System.out.println("ERREUR: " + message);
     }
 
+    // Affichage du cout total, de la dispersion et de la surcharge
     public void afficherCout(double coutTotal, double dispersion, double surcharge) {
         System.out.println("\n--- RESULTAT DU CALCUL DE COUT ---");
         System.out.printf("Dispersion (Disp(S))     : %.4f\n", dispersion);
@@ -297,6 +296,7 @@ public class ConsoleView {
         System.out.printf("Cout total (Cout(S))     : %.4f\n", coutTotal);
     }
 
+    // Affichage des problemes de configuration
     public void afficherProblemesConfiguration(List<String> problemes) {
         afficherErreur("La configuration du reseau est incomplete.");
         System.out.println("Problemes detectes :");
@@ -305,6 +305,7 @@ public class ConsoleView {
         }
     }
 
+    // Affichage de l'etat actuel du reseau
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
