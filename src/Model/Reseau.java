@@ -91,6 +91,12 @@ public class Reseau {
         }
 
         // Vérification de la capacité
+        for (String nomMaison : maisons.keySet()) {
+            if (!connexions.containsKey(nomMaison)) {
+                problemes.add(nomMaison + " (n'est pas connectée)");
+            }
+        }
+
         int capaciteGenerateurs = 0;
         for (Generateur generateur : generateurs.values()) {
             capaciteGenerateurs += generateur.getCapaciteMax();

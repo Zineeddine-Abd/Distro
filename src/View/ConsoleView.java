@@ -155,6 +155,12 @@ public class ConsoleView {
             return;
         }
 
+        String generateurExiste = reseau.getConnexionPourMaison(nomMaison);
+        if(generateurExiste != null){
+            afficherErreur("La maison " + nomMaison + " est deja connectee avec le generateur " + generateurExiste + ".");
+            return;
+        }
+
         controller.addConnexion(nomMaison, nomGenerateur);
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
     }
