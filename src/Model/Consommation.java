@@ -1,8 +1,10 @@
 package Model;
 
-/**
- * Représente les catégories de consommation d'une maison.
- **/
+
+// Représente les catégories de consommation d'une maison.
+// Pour la garantie de la securité et la cohérence des données, on utilise une énumération.
+// Pour la centralisation et la scalabilité.
+
 public enum Consommation {
     BASSE(10),
     NORMALE(20),

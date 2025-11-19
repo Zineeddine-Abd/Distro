@@ -2,6 +2,8 @@ package Model;
 
 import java.util.Objects;
 
+// Representation d'une maison dans le reseau
+
 public class Maison {
     private final String nom;
     private Consommation consommation;
@@ -21,7 +23,6 @@ public class Maison {
 
     @Override
     public boolean equals(Object o) {
-
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 

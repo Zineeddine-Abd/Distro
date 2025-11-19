@@ -7,13 +7,13 @@ import Model.Reseau;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-/**
- * Gere tous les affichages et les saisies de la console.
- */
+// Gere tous les affichages et les saisies de la console.
+
 public class ConsoleView {
     private final AppController controller;
     private final Scanner scanner;
@@ -23,12 +23,13 @@ public class ConsoleView {
         this.scanner = new Scanner(System.in);
     }
 
-    /** Demarrage la boucle principale de l'application. */
+    // Demarrage la boucle principale de l'application.
     public void start() {
         gererMenuConfiguration();
     }
 
     // --- Gestion des menus ---
+    // Menu 1 : Configuration du reseau
     private void gererMenuConfiguration() {
         boolean configurationTerminee = false;
         while (!configurationTerminee) {
@@ -63,6 +64,7 @@ public class ConsoleView {
         }
     }
 
+    //Menu 2 : Analyse du reseau
     private void gererMenuAnalyse() {
         boolean quitter = false;
         while (!quitter) {
@@ -89,7 +91,8 @@ public class ConsoleView {
         }
     }
 
-    // --- Logique de traitement des entrées utilisateur ---
+    // --- Logique de traitement des entrees utilisateur ---
+    // Ajout d'un generateur
     private void traiterAjoutGenerateur() {
         System.out.print("Entrez le nom et la capacite du generateur (ex: G1 60) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -108,6 +111,7 @@ public class ConsoleView {
         }
     }
 
+    // Ajout d'une maison
     private void traiterAjoutMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -128,6 +132,7 @@ public class ConsoleView {
         }
     }
 
+    // Ajout d'une connexion entre une maison et un generateur
     private void traiterAjoutConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur à connecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -160,6 +165,7 @@ public class ConsoleView {
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
+    // Suppression d'une connexion entre une maison et un generateur
     private void traiterSuppressionConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur à deconnecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -191,6 +197,7 @@ public class ConsoleView {
         afficherMessage("Connexion supprimee entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
+    // Modification d'une connexion existante
     private void traiterModificationConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -244,16 +251,18 @@ public class ConsoleView {
         }
 
         if (!nomMaisonAncienne.equals(nomMaisonNouvelle) || !reseau.generateurExiste(nomGenNouveau)) {
-            afficherErreur("Saisie invalide (la maison doit etre la meme, le nouveau generateur doit exister).");
+            afficherErreur("Saisie invalide (la maison doit etre la meme, et le nouveau generateur doit exister)");
             return;
         }
 
-        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau, nomMaisonAncienne, nomGenAncien);
+        controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
+
         afficherMessage(
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
     }
 
-    // --- Methodes d'affichage ---
+    // --- Methodes d'affichage ---7
+    // Affichage du menu principal
     public void afficherMenuPrincipal() {
         System.out.println("\n--- MENU DE CONFIGURATION ---");
         System.out.println("1) Ajouter un generateur");
@@ -264,6 +273,7 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    // Affichage du menu d'analyse
     public void afficherMenuAnalyse() {
         System.out.println("\n--- MENU D'ANALYSE ---");
         System.out.println("1) Calculer le cout du reseau electrique actuel");
@@ -273,18 +283,18 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    // --- Messages d'information ---
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
-
     public void afficherAvertissement(String message) {
         System.out.println("AVERTISSEMENT: " + message);
     }
-
     public void afficherErreur(String message) {
         System.out.println("ERREUR: " + message);
     }
 
+    // Affichage du cout total, de la dispersion et de la surcharge
     public void afficherCout(double coutTotal, double dispersion, double surcharge) {
         System.out.println("\n--- RESULTAT DU CALCUL DE COUT ---");
         System.out.printf("Dispersion (Disp(S))     : %.4f\n", dispersion);
@@ -292,6 +302,7 @@ public class ConsoleView {
         System.out.printf("Cout total (Cout(S))     : %.4f\n", coutTotal);
     }
 
+    // Affichage des problemes de configuration
     public void afficherProblemesConfiguration(List<String> problemes) {
         afficherErreur("La configuration du reseau est incomplete.");
         System.out.println("Problemes detectes :");
@@ -300,39 +311,67 @@ public class ConsoleView {
         }
     }
 
+    // Affichage de l'etat actuel du reseau
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
+        //Affichage des générateurs et de leurs connexions
         if (reseau.getGenerateurs().isEmpty()) {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
             System.out.println("\n>> Genérateurs et connexions :");
-            // On a Regrouper les maisons par genérateur pour mieux affichee
-            Map<String, List<String>> maisonsParGenerateur = reseau.getConnexions().entrySet().stream()
-                    .collect(Collectors.groupingBy(Map.Entry::getValue,
-                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+
+            // Recrée la map inversée (Générateur -> Liste de Maisons) manuellement
+            Map<String, List<String>> maisonsParGenerateur = new HashMap<>();
+            for (String nomGenerateur : reseau.getGenerateurs().keySet()) {
+                maisonsParGenerateur.put(nomGenerateur, new ArrayList<>());
+            }
+
+            for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
+                String nomMaison = entry.getKey();
+                List<String> generateursConnectes = entry.getValue();
+
+                // Ajoute la maison à la liste de CHACUN de ses générateurs
+                for (String nomGenerateur : generateursConnectes) {
+                    if (maisonsParGenerateur.containsKey(nomGenerateur)) {
+                        maisonsParGenerateur.get(nomGenerateur).add(nomMaison);
+                    }
+                }
+            }
 
             for (Generateur gen : reseau.getGenerateurs().values()) {
                 System.out.printf("- %s (Capacite: %d kW)\n", gen.getNom(), gen.getCapaciteMax());
                 List<String> maisonsConnectees = maisonsParGenerateur.getOrDefault(gen.getNom(), new ArrayList<>());
                 if (maisonsConnectees.isEmpty()) {
-                    System.out.println("  -> Ne dessert aucune maison.");
+                    System.out.println("  -> Ne connecte aucune maison.");
                 } else {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
-                        System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                        if (maison != null) {
+                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                        }
                     }
                 }
             }
         }
 
+        // Affichage des maisons et de leurs connexions
         if (reseau.getMaisons().isEmpty()) {
             System.out.println("\nAucune maison dans le reseau.");
         } else {
             System.out.println("\n>> Liste des maisons :");
             for (Maison maison : reseau.getMaisons().values()) {
-                String genConnecte = reseau.getConnexionPourMaison(maison.getNom());
-                String statut = (genConnecte != null) ? "connectee à " + genConnecte : "non connectee";
+
+                List<String> gens = reseau.getConnexions().get(maison.getNom());
+                String statut;
+                if (gens == null || gens.isEmpty()) {
+                    statut = "non connectee";
+                } else if (gens.size() == 1) {
+                    statut = "connectee à " + gens.get(0);
+                } else {
+                    statut = "connectee à PLUSIEURS: " + String.join(", ", gens);
+                }
+
                 System.out.printf("- %s (%s kW) - %s\n", maison.getNom(), maison.getConsommation().name(), statut);
             }
         }
