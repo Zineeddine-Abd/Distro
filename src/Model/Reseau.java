@@ -19,6 +19,7 @@ public class Reseau {
     // La map des connexions : chaque maison peut etre connectee a plusieurs generateurs dans le premier menu
     // C'est pour ca qu'on utilise une List pour les generateurs
     // Aussi l'utilisation de String pour les noms permet de simplifier la recherche
+    // Aussi pour eviter les problemes avec les objets
     private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value : List<nomGenerateur>}
 
     // --- Methodes pour la gestion du reseau ---

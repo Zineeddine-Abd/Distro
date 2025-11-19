@@ -309,6 +309,7 @@ public class ConsoleView {
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
+        //Affichage des générateurs et de leurs connexions
         if (reseau.getGenerateurs().isEmpty()) {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
@@ -348,6 +349,7 @@ public class ConsoleView {
             }
         }
 
+        // Affichage des maisons et de leurs connexions
         if (reseau.getMaisons().isEmpty()) {
             System.out.println("\nAucune maison dans le reseau.");
         } else {
