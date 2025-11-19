@@ -50,7 +50,7 @@ public class Reseau {
         connexions.computeIfAbsent(nomMaison, k -> new ArrayList<>()).add(nomGenerateur);
     }
 
-     // Supprime une connexion spécifique.
+    // Supprime une connexion spécifique.
     public void supprimerConnexion(String nomMaison, String nomGenerateur) {
         List<String> gens = connexions.get(nomMaison);
         if (gens != null) {
@@ -61,20 +61,20 @@ public class Reseau {
         }
     }
 
-     // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
+    // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
     public void setConnexionUnique(String nomMaison, String nomGenerateur) {
         List<String> nouvelleListe = new ArrayList<>();
         nouvelleListe.add(nomGenerateur);
         connexions.put(nomMaison, nouvelleListe); // pour craser la liste précédente
     }
 
-     // Verifie si une connexion specifique existe.
+    // Verifie si une connexion specifique existe.
     public boolean connexionExiste(String nomMaison, String nomGenerateur) {
         List<String> gens = connexions.get(nomMaison);
         return gens != null && gens.contains(nomGenerateur);
     }
 
-     // Valide la configuration du reseau et retourne une liste de problemes trouves.
+    // Valide la configuration du reseau et retourne une liste de problemes trouves.
     public List<String> validerConfiguration() {
 
         List<String> problemes = new ArrayList<>();
@@ -91,12 +91,6 @@ public class Reseau {
         }
 
         // Vérification de la capacité
-        for (String nomMaison : maisons.keySet()) {
-            if (!connexions.containsKey(nomMaison)) {
-                problemes.add(nomMaison + " (n'est pas connectée)");
-            }
-        }
-
         int capaciteGenerateurs = 0;
         for (Generateur generateur : generateurs.values()) {
             capaciteGenerateurs += generateur.getCapaciteMax();
