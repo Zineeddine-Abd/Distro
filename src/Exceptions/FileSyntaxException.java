@@ -1,4 +1,4 @@
-package Model;
+package Exceptions;
 
 public class FileSyntaxException extends Exception {
   private final int numeroLigne;

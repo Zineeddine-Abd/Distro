@@ -1,21 +1,35 @@
 package Controller;
 
 import Model.*;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Il contient toute la logique applicative
- * agit comme un intermidiaire entre la Vue (Affichage) et le Modele (calcule et logique metier/stockage).
+ * agit comme un intermidiaire entre la Vue (Affichage) et le Modele (calcule et
+ * logique metier/stockage).
  */
 
 public class AppController {
-    private final Reseau reseau;
+    private Reseau reseau;
 
     public AppController(Reseau reseau) {
         this.reseau = reseau;
     }
 
-    // --- Actions declenchees par la Vue ---
+    // Loads a network from file and replaces the current model
+    public void chargerReseauDepuisFichier(String chemin) throws Exception {
+        // Delegate logic to the static persistence class
+        this.reseau = FilePersistence.chargerReseau(chemin);
+    }
+
+    // Saves current network
+    public void sauvegarderReseau(String chemin) throws IOException {
+        FilePersistence.sauvegarderReseau(this.reseau, chemin);
+    }
+
+    // --- Actions declenchees par le View ---
     // Ajoute ou met a jour un generateur dans le reseau
     // Retourne true si l'element existait deja (mis a jour), false sinon (ajout)
     public boolean addGenerateur(String nom, int capacite) {
@@ -43,12 +57,14 @@ public class AppController {
         reseau.supprimerConnexion(nomMaison, nomGenerateur);
     }
 
-    // Modifie une connexion pour qu'une maison soit connectee a un nouveau generateur
+    // Modifie une connexion pour qu'une maison soit connectee a un nouveau
+    // generateur
     public void modifierConnexion(String nomMaison, String nomNouveauGenerateur) {
         reseau.setConnexionUnique(nomMaison, nomNouveauGenerateur);
     }
 
-    // Valide la configuration du reseau et retourne une liste de messages d'erreur s'il y en a
+    // Valide la configuration du reseau et retourne une liste de messages d'erreur
+    // s'il y en a
     public List<String> validerConfigurationReseau() {
         return reseau.validerConfiguration();
     }

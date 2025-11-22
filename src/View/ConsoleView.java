@@ -24,7 +24,7 @@ public class ConsoleView {
     }
 
     // Demarrage la boucle principale de l'application.
-    public void start() {
+    public void start(String[] args) {
         gererMenuConfiguration();
     }
 
@@ -64,7 +64,7 @@ public class ConsoleView {
         }
     }
 
-    //Menu 2 : Analyse du reseau
+    // Menu 2 : Analyse du reseau
     private void gererMenuAnalyse() {
         boolean quitter = false;
         while (!quitter) {
@@ -281,9 +281,11 @@ public class ConsoleView {
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
+
     public void afficherAvertissement(String message) {
         System.out.println("AVERTISSEMENT: " + message);
     }
+
     public void afficherErreur(String message) {
         System.out.println("ERREUR: " + message);
     }
@@ -309,7 +311,7 @@ public class ConsoleView {
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
-        //Affichage des générateurs et de leurs connexions
+        // Affichage des générateurs et de leurs connexions
         if (reseau.getGenerateurs().isEmpty()) {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
@@ -342,7 +344,8 @@ public class ConsoleView {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
                         if (maison != null) {
-                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(),
+                                    maison.getConsommationKw());
                         }
                     }
                 }

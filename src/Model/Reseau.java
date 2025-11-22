@@ -88,6 +88,7 @@ public class Reseau {
     }
 
     // Valide la configuration du reseau et retourne une liste de problemes trouves.
+    // (CE SONT QUE DES PROBLEMES FATAUX)
     public List<String> validerConfiguration() {
 
         List<String> problemes = new ArrayList<>();

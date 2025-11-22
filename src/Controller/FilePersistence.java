@@ -9,16 +9,19 @@ import java.io.File;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import Exceptions.FileSyntaxException;
+import Exceptions.ReseauInvalideException;
+
 import java.util.HashMap;
 import java.util.List;
 
 import Model.Reseau;
-import Model.FileSyntaxException;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;
 
-public class FileLoader {
+public class FilePersistence {
   // private static String regex =
   // "^(?:generateur\\([A-Za-z][A-Za-z0-9]*,\\d+\\)\\.|" +
   // "maison\\([A-Za-z][A-Za-z0-9]*,(?:NORMAL|BASSE|FORTE)\\)\\.|" +
@@ -30,13 +33,19 @@ public class FileLoader {
   private static final Pattern LINE_PATTERN = Pattern
       .compile(regex);
 
+  private static int sommeCapacitesGenerateurs = 0;
+  private static int sommeBesoinsMaisons = 0;
+
   public static Reseau chargerReseau(String cheminFichier)
-      throws FileNotFoundException, IOException, FileSyntaxException {
+      throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException {
     File fichier = new File(cheminFichier);
     if (!fichier.exists()) {
       throw new FileNotFoundException("Le fichier spécifié est introuvable : " + cheminFichier);
     }
     Reseau reseau = new Reseau();
+    sommeCapacitesGenerateurs = 0;
+    sommeBesoinsMaisons = 0;
+
     Map<String, Generateur> generateurs = new HashMap<>();
     Map<String, Maison> maisons = new HashMap<>();
 
@@ -74,17 +83,21 @@ public class FileLoader {
               throw new FileSyntaxException(
                   "Les générateurs doivent être définis en premier.", numeroLigne, ligne);
             sectionEncours = 1;
-
-            int capacity;
             try {
-              capacity = Integer.parseInt(arg2);
+              int capacite = Integer.parseInt(arg2);
+              if (capacite < 0)
+                throw new NumberFormatException();
+
+              Generateur gen = new Generateur(arg1, capacite);
+              reseau.addOrUpdateGenerateur(gen);
+              generateurs.put(arg1, gen);
+
+              // MISE À JOUR DE LA CAPACITÉ TOTALE
+              sommeCapacitesGenerateurs += capacite;
+
             } catch (NumberFormatException e) {
               throw new FileSyntaxException("La capacité doit être un entier.", numeroLigne, ligne);
             }
-
-            Generateur gen = new Generateur(arg1, capacity);
-            reseau.addOrUpdateGenerateur(gen);
-            generateurs.put(arg1, gen);
             break;
           case "maison":
             if (sectionEncours > 2)
@@ -93,17 +106,30 @@ public class FileLoader {
                   ligne);
             sectionEncours = 2;
 
-            // Création de la maison (arg1 = nom, arg2 = type de consommation)
             try {
-              // valide que arg2 est NORMAL, BASSE, ou FORTE
-              Consommation conso = Consommation.valueOf(arg2);
-              Maison maison = new Maison(arg1, conso);
-              reseau.addOrUpdateMaison(maison);
-              maisons.put(arg1, maison);
+              Consommation conso = Consommation.fromString(arg2);
+              reseau.addOrUpdateMaison(new Maison(arg1, conso));
+
+              // 1. On ajoute la consommation de cette nouvelle maison au cumul
+              sommeBesoinsMaisons += conso.getValeurKw();
+
+              // 2. VÉRIFICATION IMMÉDIATE : A-t-on dépassé le plafond ?
+              // La contrainte globale est : Somme(Demandes) <= Somme(Capacités)
+              if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
+                throw new FileSyntaxException(
+                    "CAPACITÉ GLOBALE DÉPASSÉE : L'ajout de la maison '" + arg1 + "' (" + conso.getValeurKw() + "kW) " +
+                        "porte la demande totale à " + sommeBesoinsMaisons
+                        + "kW, ce qui dépasse la capacité totale des générateurs (" +
+                        sommeCapacitesGenerateurs + "kW).",
+                    numeroLigne,
+                    ligne);
+              }
+
             } catch (IllegalArgumentException e) {
-              throw new FileSyntaxException("Type de consommation inconnu (Attendu: BASSE, NORMAL, FORTE)", numeroLigne,
-                  ligne);
+              throw new FileSyntaxException("Type de consommation invalide/inattendu (Attendu: BASSE, NORMAL, FORTE)",
+                  numeroLigne, ligne);
             }
+
             break;
           case "connexion":
             if (sectionEncours < 2)
@@ -184,24 +210,37 @@ public class FileLoader {
   /**
    * Vérifications globales qui ne peuvent se faire qu'à la fin du fichier.
    */
-  private static void validerCompletude(Reseau reseau) throws Exception {
-    // Vérifier qu'il y a au moins 1 maison et 1 générateur [cite: 202]
-    if (reseau.getMaisons().isEmpty() || reseau.getGenerateurs().isEmpty()) {
-      throw new Exception("Le réseau doit contenir au moins une maison et un générateur.");
+  private static void validerCompletude(Reseau reseau) throws ReseauInvalideException {
+
+    List<String> problemes = reseau.validerConfiguration();
+    if (!problemes.isEmpty()) {
+      // On lance (crée) l'exception avec TOUTE la liste des problèmes
+      throw new ReseauInvalideException(problemes);
     }
 
-    // Vérifier les maisons orphelines (définies mais sans connexion)
-    for (String nomMaison : reseau.getMaisons().keySet()) {
-      if (!reseau.getConnexions().containsKey(nomMaison) || reseau.getConnexions().get(nomMaison).isEmpty()) {
-        throw new Exception(
-            "Configuration incomplète : La maison '" + nomMaison + "' n'est connectée à aucun générateur.");
-      }
-    }
+    // // Vérifier qu'il y a au moins 1 maison et 1 générateur [cite: 202]
+    // if (reseau.getMaisons().isEmpty() || reseau.getGenerateurs().isEmpty()) {
+    // throw new ReseauInvalideException("Le réseau doit contenir au moins une
+    // maison et un générateur.");
+    // }
 
-    List<String> erreursGlobales = reseau.validerConfiguration();
-    if (!erreursGlobales.isEmpty()) {
-      throw new Exception("Erreur globale de capacité : " + erreursGlobales.get(0));
-    }
+    // // Vérifier les maisons orphelines (définies mais sans connexion)
+    // for (String nomMaison : reseau.getMaisons().keySet()) {
+    // if (!reseau.getConnexions().containsKey(nomMaison) ||
+    // reseau.getConnexions().get(nomMaison).isEmpty()) {
+    // throw new ReseauInvalideException(
+    // "Configuration incomplète : La maison '" + nomMaison + "' n'est connectée à
+    // aucun générateur.");
+    // }
+    // }
+
+    // List<String> erreursGlobales = reseau.validerConfiguration();
+    // if (!erreursGlobales.isEmpty()) {
+    // throw new ReseauInvalideException("Erreur globale de capacité : " +
+    // erreursGlobales.get(0));
+    // }
   }
 
+  public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {
+  }
 }
