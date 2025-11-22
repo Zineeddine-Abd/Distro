@@ -6,6 +6,8 @@ import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
 
+import static Model.Constants.LAMBDA;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -34,18 +36,39 @@ public class ConsoleView {
         // Case 2: Arguments provided -> File Mode (Part 2)
         else {
             String cheminFichier = args[0];
-            // TODO: Note: args[1] might contain the penalty (lambda),
-            // currently hardcoded as 10 in Reseau.java. You might want to pass this to
-            // Reseau later.
+            int lambda = LAMBDA;
+            // Check if lambda is provided in args[1]
+            if (args.length >= 2) {
+                try {
+                    lambda = Integer.parseInt(args[1]);
+
+                    // Optional: Validate that lambda is positive
+                    if (lambda <= 0) {
+                        System.err.println("ERREUR : La pénalité (lambda) doit être un entier positif.");
+                        System.exit(1);
+                    }
+
+                } catch (NumberFormatException e) {
+                    // Requirement: Handle exception if user types "abc" or float
+                    System.err.println(
+                            "ERREUR : La valeur de pénalité '" + args[1] + "' n'est pas valide (entier attendu).");
+                    System.exit(1);
+                }
+            } else {
+                System.out.println(
+                        "INFO : Pas de pénalité spécifiée, utilisation de la valeur par défaut (lu depuis le fichier des constantes Model/Constants.java) ("
+                                + LAMBDA + ").");
+            }
 
             try {
                 System.out.println("Chargement du fichier : " + cheminFichier + " ...");
 
                 // 1. Load and validate file [cite: 70]
                 Reseau reseau = FilePersistence.chargerReseau(cheminFichier);
+                reseau.setLambda(lambda);
                 AppController controller = new AppController(reseau);
 
-                System.out.println("Fichier charge avec succes !");
+                System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
 
                 // 2. Launch Part 2 Menu logic [cite: 77]
                 runPart2Menu(controller);

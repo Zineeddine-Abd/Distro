@@ -27,6 +27,18 @@ public class Reseau {
     private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value :
                                                                           // List<nomGenerateur>}
 
+    private int lambda = LAMBDA;
+
+    // NEW: Setter to update lambda from Main
+    public void setLambda(int lambda) {
+        this.lambda = lambda;
+    }
+
+    // NEW: Getter (optional, but good for debugging)
+    public int getLambda() {
+        return lambda;
+    }
+
     // --- Methodes pour la gestion du reseau ---
     // Verifie si une maison existe deja dans le reseau
     public boolean maisonExiste(String nom) {
@@ -176,7 +188,7 @@ public class Reseau {
         double dispersion = calculerDispersion(tauxUtilisation, moyenneTaux);
         double surcharge = calculerSurcharge(charges);
 
-        double coutTotal = dispersion + LAMBDA * surcharge;
+        double coutTotal = dispersion + this.lambda * surcharge;
 
         return new double[] { coutTotal, dispersion, surcharge };
     }
