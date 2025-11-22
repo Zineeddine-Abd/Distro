@@ -1,5 +1,7 @@
 package Model;
 
+import static Model.Constants.LAMBDA;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -174,7 +176,6 @@ public class Reseau {
         double dispersion = calculerDispersion(tauxUtilisation, moyenneTaux);
         double surcharge = calculerSurcharge(charges);
 
-        final int LAMBDA = 10;
         double coutTotal = dispersion + LAMBDA * surcharge;
 
         return new double[] { coutTotal, dispersion, surcharge };

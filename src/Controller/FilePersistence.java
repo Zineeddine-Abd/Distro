@@ -22,10 +22,6 @@ import Model.Generateur;
 import Model.Maison;
 
 public class FilePersistence {
-  // private static String regex =
-  // "^(?:generateur\\([A-Za-z][A-Za-z0-9]*,\\d+\\)\\.|" +
-  // "maison\\([A-Za-z][A-Za-z0-9]*,(?:NORMAL|BASSE|FORTE)\\)\\.|" +
-  // "connexion\\([A-Za-z][A-Za-z0-9]*,[A-Za-z][A-Za-z0-9]*\\)\\.)$";
 
   // Regex générique pour capturer la structure : type(arg1, arg2).
   private static String regex = "^([a-z]+)\\(([a-zA-Z0-9]+),([a-zA-Z0-9]+)\\)\\.$";
@@ -218,27 +214,6 @@ public class FilePersistence {
       throw new ReseauInvalideException(problemes);
     }
 
-    // // Vérifier qu'il y a au moins 1 maison et 1 générateur [cite: 202]
-    // if (reseau.getMaisons().isEmpty() || reseau.getGenerateurs().isEmpty()) {
-    // throw new ReseauInvalideException("Le réseau doit contenir au moins une
-    // maison et un générateur.");
-    // }
-
-    // // Vérifier les maisons orphelines (définies mais sans connexion)
-    // for (String nomMaison : reseau.getMaisons().keySet()) {
-    // if (!reseau.getConnexions().containsKey(nomMaison) ||
-    // reseau.getConnexions().get(nomMaison).isEmpty()) {
-    // throw new ReseauInvalideException(
-    // "Configuration incomplète : La maison '" + nomMaison + "' n'est connectée à
-    // aucun générateur.");
-    // }
-    // }
-
-    // List<String> erreursGlobales = reseau.validerConfiguration();
-    // if (!erreursGlobales.isEmpty()) {
-    // throw new ReseauInvalideException("Erreur globale de capacité : " +
-    // erreursGlobales.get(0));
-    // }
   }
 
   public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {

@@ -1,6 +1,7 @@
 package View;
 
 import Controller.AppController;
+import Controller.FilePersistence;
 import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
@@ -25,7 +26,37 @@ public class ConsoleView {
 
     // Demarrage la boucle principale de l'application.
     public void start(String[] args) {
-        gererMenuConfiguration();
+        // Case 1: No arguments -> Manual Mode (Part 1)
+        if (args.length == 0) {
+            System.out.println("Mode manuel active (Aucun fichier fourni).");
+            gererMenuConfiguration();
+        }
+        // Case 2: Arguments provided -> File Mode (Part 2)
+        else {
+            String cheminFichier = args[0];
+            // TODO: Note: args[1] might contain the penalty (lambda),
+            // currently hardcoded as 10 in Reseau.java. You might want to pass this to
+            // Reseau later.
+
+            try {
+                System.out.println("Chargement du fichier : " + cheminFichier + " ...");
+
+                // 1. Load and validate file [cite: 70]
+                Reseau reseau = FilePersistence.chargerReseau(cheminFichier);
+                AppController controller = new AppController(reseau);
+
+                System.out.println("Fichier charge avec succes !");
+
+                // 2. Launch Part 2 Menu logic [cite: 77]
+                runPart2Menu(controller);
+
+            } catch (Exception e) {
+                // Handle errors and exit [cite: 76]
+                System.err.println("ERREUR FATALE : Impossible de charger le reseau.");
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+        }
     }
 
     // --- Gestion des menus ---
@@ -88,6 +119,43 @@ public class ConsoleView {
                 default:
                     afficherErreur("Choix invalide. Veuillez reessayer.");
             }
+        }
+    }
+
+    // Menu 3 : Reseau charge depuis fichier (Partie 2)
+    private static void runPart2Menu(AppController controller) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            boolean running = true;
+
+            while (running) {
+                afficherMenuPrincipalPartie2();
+
+                String input = scanner.nextLine();
+
+                switch (input) {
+                    case "1":
+                        System.out.println("Fonctionnalite 'Resolution automatique' a implementer.");
+                        // TODO: Implement Algorithm 1 here in the next step
+                        break;
+                    case "2":
+                        System.out.print("Entrez le nom du fichier de sauvegarde : ");
+                        String savePath = scanner.nextLine();
+                        try {
+                            controller.sauvegarderReseau(savePath);
+                            System.out.println("Sauvegarde reussie dans " + savePath);
+                        } catch (Exception e) {
+                            System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
+                        }
+                        break;
+                    case "3":
+                        running = false;
+                        System.out.println("Au revoir.");
+                        break;
+                    default:
+                        System.out.println("Choix invalide.");
+                }
+            }
+
         }
     }
 
@@ -274,6 +342,14 @@ public class ConsoleView {
         System.out.println("2) Modifier une connexion");
         System.out.println("3) Afficher le reseau");
         System.out.println("4) Fin");
+        System.out.print("Votre choix : ");
+    }
+
+    public static void afficherMenuPrincipalPartie2() {
+        System.out.println("\n--- MENU PARTIE 2 ---");
+        System.out.println("1) Resolution automatique"); // [cite: 78]
+        System.out.println("2) Sauvegarder la solution actuelle"); // [cite: 79]
+        System.out.println("3) Fin"); // [cite: 81]
         System.out.print("Votre choix : ");
     }
 
