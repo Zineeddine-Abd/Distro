@@ -11,16 +11,19 @@ import java.util.Map;
  */
 
 public class Reseau {
-    // Justification d'utilisation de Map plutot que List dans la representation des maisons et generateurs :
+    // Justification d'utilisation de Map plutot que List dans la representation des
+    // maisons et generateurs :
     // mieux pour recherche et aussi la mise a jour rapide
     // aussi pour garder l'unicite des noms
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
-    // La map des connexions : chaque maison peut etre connectee a plusieurs generateurs dans le premier menu
+    // La map des connexions : chaque maison peut etre connectee a plusieurs
+    // generateurs dans le premier menu
     // C'est pour ca qu'on utilise une List pour les generateurs
     // Aussi l'utilisation de String pour les noms permet de simplifier la recherche
     // Aussi pour eviter les problemes avec les objets
-    private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value : List<nomGenerateur>}
+    private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value :
+                                                                          // List<nomGenerateur>}
 
     // --- Methodes pour la gestion du reseau ---
     // Verifie si une maison existe deja dans le reseau
@@ -43,9 +46,11 @@ public class Reseau {
         generateurs.put(generateur.getNom(), generateur);
     }
 
-    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est ajoutée à la liste.
+    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est
+    // ajoutée à la liste.
     public void creerConnexion(String nomMaison, String nomGenerateur) {
-        // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si elle n'existe pas.
+        // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si
+        // elle n'existe pas.
         // .add() : Ajoute le générateur à cette liste.
         connexions.computeIfAbsent(nomMaison, k -> new ArrayList<>()).add(nomGenerateur);
     }
@@ -61,7 +66,8 @@ public class Reseau {
         }
     }
 
-    // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
+    // Remplace toutes les connexions d'une maison par une nouvelle connexion
+    // unique, Utilise pour la modification
     public void setConnexionUnique(String nomMaison, String nomGenerateur) {
         List<String> nouvelleListe = new ArrayList<>();
         nouvelleListe.add(nomGenerateur);
@@ -72,6 +78,13 @@ public class Reseau {
     public boolean connexionExiste(String nomMaison, String nomGenerateur) {
         List<String> gens = connexions.get(nomMaison);
         return gens != null && gens.contains(nomGenerateur);
+    }
+
+    /**
+     * Vérifie simplement si la maison a déjà au moins une connexion enregistrée
+     */
+    public boolean connexionExistePourMaison(String nomMaison) {
+        return connexions.containsKey(nomMaison) && !connexions.get(nomMaison).isEmpty();
     }
 
     // Valide la configuration du reseau et retourne une liste de problemes trouves.
@@ -100,7 +113,8 @@ public class Reseau {
             chargesMaisons += maison.getConsommationKw();
         }
         if (capaciteGenerateurs < chargesMaisons) {
-            problemes.add("La capacite totale des generateurs (" + capaciteGenerateurs + "kW) est insuffisante pour alimenter toutes les maisons (" + chargesMaisons + "kW).");
+            problemes.add("La capacite totale des generateurs (" + capaciteGenerateurs
+                    + "kW) est insuffisante pour alimenter toutes les maisons (" + chargesMaisons + "kW).");
         }
 
         // Verification des connextions
@@ -111,7 +125,7 @@ public class Reseau {
             if (gens == null || gens.isEmpty()) {
                 problemes.add(nomMaison + " (pas de connexion)");
             }
-            // Cas 2 : "trop de connexions"
+            // Cas 2 : "trop de connexions (maison connectee a plusieurs generateurs)"
             else if (gens.size() > 1) {
                 String genList = String.join(", ", gens); // Construit "G1, G2"
                 problemes.add(nomMaison + " (trop de connexions: " + genList + ")");
@@ -139,11 +153,14 @@ public class Reseau {
 
     /**
      * Le calcul de coût ne fonctionne QUE sur un réseau valide.
-     * On suppose qu'il n'est appelé toujours que lorsque la configuration est valide.
-     * Cette méthode ne comptera la charge que pour les maisons ayant UNE SEULE connexion.
+     * On suppose qu'il n'est appelé toujours que lorsque la configuration est
+     * valide.
+     * Cette méthode ne comptera la charge que pour les maisons ayant UNE SEULE
+     * connexion.
      */
 
-    // Calcule le cout total du reseau en fonction de la dispersion et de la surcharge.
+    // Calcule le cout total du reseau en fonction de la dispersion et de la
+    // surcharge.
     // Retourne un tableau de double : [coutTotal, dispersion, surcharge]
     public double[] calculerCout() {
         if (generateurs.isEmpty())
@@ -162,7 +179,8 @@ public class Reseau {
         return new double[] { coutTotal, dispersion, surcharge };
     }
 
-    // Calcule la charge totale pour chaque générateur (la somme des capacite des masions connectés).
+    // Calcule la charge totale pour chaque générateur (la somme des capacite des
+    // masions connectés).
     private Map<String, Integer> calculerCharges() {
         Map<String, Integer> charges = new HashMap<>();
         generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges a 0
