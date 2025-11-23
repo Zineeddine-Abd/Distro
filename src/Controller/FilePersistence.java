@@ -146,7 +146,6 @@ public class FilePersistence {
                 "Premier mot de la ligne (le type) est inconnu (unexpected), expected \"maison\" \"generateur\", or \"connexion\", found: "
                     + type,
                 numeroLigne, ligne);
-            break;
         }
       }
     } catch (IOException e) {
