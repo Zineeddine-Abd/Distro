@@ -139,11 +139,14 @@ public class FilePersistence {
 
             // C'est ici que se fait la validation "au vol" avec le numéro de ligne
             parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
-
+            break;
           default:
+            System.out.println("type: " + type);
             throw new FileSyntaxException(
-                "Premier mot de la ligne (le type) est inconnu (unexpected), expects \"maison\" \"generateur\", or \"connexion\" ",
+                "Premier mot de la ligne (le type) est inconnu (unexpected), expected \"maison\" \"generateur\", or \"connexion\", found: "
+                    + type,
                 numeroLigne, ligne);
+            break;
         }
       }
     } catch (IOException e) {
