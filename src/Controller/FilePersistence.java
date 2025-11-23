@@ -230,13 +230,13 @@ public class FilePersistence {
 
       // 1. Write Generators
       for (Generateur gen : reseau.getGenerateurs().values()) {
-        writer.write(String.format("generateur(%s, %d).", gen.getNom(), gen.getCapaciteMax()));
+        writer.write(String.format("generateur(%s,%d).", gen.getNom(), gen.getCapaciteMax()));
         writer.newLine();
       }
 
       // 2. Write Maisons
       for (Maison maison : reseau.getMaisons().values()) {
-        writer.write(String.format("maison(%s, %s).", maison.getNom(), maison.getConsommation().name()));
+        writer.write(String.format("maison(%s,%s).", maison.getNom(), maison.getConsommation().name()));
         writer.newLine();
       }
 
@@ -245,7 +245,7 @@ public class FilePersistence {
       for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
         String nomMaison = entry.getKey();
         for (String nomGen : entry.getValue()) {
-          writer.write(String.format("connexion(%s, %s).", nomGen, nomMaison));
+          writer.write(String.format("connexion(%s,%s).", nomGen, nomMaison));
           writer.newLine();
         }
       }
