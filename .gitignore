@@ -31,3 +31,6 @@ bin/
 .DS_Store
 
 *.class
+
+*/r.txt
+src/r.txt
