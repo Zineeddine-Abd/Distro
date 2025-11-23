@@ -106,7 +106,9 @@ public class FilePersistence {
 
             try {
               Consommation conso = Consommation.fromString(arg2);
-              reseau.addOrUpdateMaison(new Maison(arg1, conso));
+              Maison maison = new Maison(arg1, conso);
+              reseau.addOrUpdateMaison(maison);
+              maisons.put(arg1, maison);
 
               // 1. On ajoute la consommation de cette nouvelle maison au cumul
               sommeBesoinsMaisons += conso.getValeurKw();

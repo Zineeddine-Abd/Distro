@@ -63,18 +63,18 @@ public class ConsoleView {
             try {
                 System.out.println("Chargement du fichier : " + cheminFichier + " ...");
 
-                // 1. Load and validate file [cite: 70]
+                // 1. Load and validate file
                 Reseau reseau = FilePersistence.chargerReseau(cheminFichier);
                 reseau.setLambda(lambda);
                 AppController controller = new AppController(reseau);
 
                 System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
 
-                // 2. Launch Part 2 Menu logic [cite: 77]
+                // 2. Launch Part 2 Menu logic
                 runPart2Menu(controller);
 
             } catch (Exception e) {
-                // Handle errors and exit [cite: 76]
+                // Handle errors and exit
                 System.err.println("ERREUR FATALE : Impossible de charger le reseau.");
                 System.err.println(e.getMessage());
                 System.exit(1);
