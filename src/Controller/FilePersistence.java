@@ -48,7 +48,7 @@ public class FilePersistence {
     Map<String, Maison> maisons = new HashMap<>();
 
     int sectionEncours = 0; // pour savoir dans quel stade de la lecture est-on actuellement :
-                            // 0:Generateurs, 1:Maisons, 2: Connexions.
+                            // 1:Generateurs, 2:Maisons, 3: Connexions.
 
     try (BufferedReader br = new BufferedReader(new FileReader(fichier))) {
       String ligne;
