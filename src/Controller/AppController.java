@@ -1,6 +1,8 @@
 package Controller;
 
 import Model.*;
+import Algorithms.ReseauAlgorithms;
+import Algorithms.FileAlgorithms;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,12 +23,12 @@ public class AppController {
     // Loads a network from file and replaces the current model
     public void chargerReseauDepuisFichier(String chemin) throws Exception {
         // Delegate logic to the static persistence class
-        this.reseau = FilePersistence.chargerReseau(chemin);
+        this.reseau = FileAlgorithms.chargerReseau(chemin);
     }
 
     // Saves current network
     public void sauvegarderReseau(String chemin) throws IOException {
-        FilePersistence.sauvegarderReseau(this.reseau, chemin);
+        FileAlgorithms.sauvegarderReseau(this.reseau, chemin);
     }
 
     // --- Actions declenchees par le View ---
@@ -71,7 +73,7 @@ public class AppController {
 
     // Calcule et retourne le cout du reseau sous forme de tableau de doubles
     public double[] calculerCoutReseau() {
-        return reseau.calculerCout();
+        return ReseauAlgorithms.calculerCout(reseau);
     }
 
     // --- Getter pour que la Vue puisse acceder aux reseau ---

@@ -1,11 +1,11 @@
 package View;
 
 import Controller.AppController;
-import Controller.FilePersistence;
 import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
 import Algorithms.GeneticAlgorithm;
+import Algorithms.FileAlgorithms;
 
 import static Model.Constants.LAMBDA;
 
@@ -64,7 +64,7 @@ public class ConsoleView {
                 System.out.println("Chargement du fichier : " + cheminFichier + " ...");
 
                 // 1. Load and validate file
-                Reseau reseau = FilePersistence.chargerReseau(cheminFichier);
+                Reseau reseau = FileAlgorithms.chargerReseau(cheminFichier);
                 reseau.setLambda(lambda);
                 AppController controller = new AppController(reseau);
 
@@ -162,8 +162,7 @@ public class ConsoleView {
                         // Création du solveur avec le réseau actuel
                         GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
 
-                        // Paramètres : 50 individus, 100 générations, 10% de mutation
-                        // Vous pouvez ajuster ces valeurs selon la complexité voulue
+                        // Parametres : 50 individus, 100 générations, 10% de mutation
                         solver.solve(50, 100, 0.1);
 
                         // Affichage du résultat

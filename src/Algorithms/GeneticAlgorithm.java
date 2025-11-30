@@ -79,7 +79,7 @@ public class GeneticAlgorithm {
     // Calcule le score (le cout) d'une solution en l'appliquant temporairement au reseau
     private double calculerFitness(Map<String, String> solution) {
         appliquerSolutionAuReseau(solution);
-        return reseau.calculerCout()[0]; // Retourne le cout total
+        return ReseauAlgorithms.calculerCout(reseau)[0]; // Retourne le cout total
     }
 
     // Applique une map de configuration (Maison -> Generateur) a l'objet Reseau
