@@ -5,6 +5,7 @@ import Controller.FilePersistence;
 import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
+import Algorithms.GeneticAlgorithm;
 
 import static Model.Constants.LAMBDA;
 
@@ -156,8 +157,19 @@ public class ConsoleView {
 
                 switch (input) {
                     case "1":
-                        System.out.println("Fonctionnalite 'Resolution automatique' a implementer.");
-                        // TODO: Implement Algorithm 1 here in the next step
+                        System.out.println("Lancement de la résolution automatique (Algorithme Génétique)...");
+
+                        // Création du solveur avec le réseau actuel
+                        GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
+
+                        // Paramètres : 50 individus, 100 générations, 10% de mutation
+                        // Vous pouvez ajuster ces valeurs selon la complexité voulue
+                        solver.solve(50, 100, 0.1);
+
+                        // Affichage du résultat
+                        double[] couts = controller.calculerCoutReseau();
+                        System.out.println("Optimisation terminee.");
+                        System.out.printf("Nouveau cout total trouvé : %.4f (Surcharge: %.4f)\n", couts[0], couts[2]);
                         break;
                     case "2":
                         System.out.print("Entrez le nom du fichier de sauvegarde : ");
@@ -177,7 +189,6 @@ public class ConsoleView {
                         System.out.println("Choix invalide.");
                 }
             }
-
         }
     }
 
