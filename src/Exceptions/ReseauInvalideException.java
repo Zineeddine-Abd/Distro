@@ -28,6 +28,7 @@ public class ReseauInvalideException extends Exception {
     if (erreurs.size() == 1) {
       return erreurs.get(0);
     }
-    return super.getMessage() + " : " + String.join("; ", erreurs);
+    return super.getMessage() + " : \n" + //
+        "- " + String.join("\n- ", erreurs);
   }
 }

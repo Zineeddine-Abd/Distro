@@ -112,7 +112,7 @@ public class Reseau {
             problemes.add("Aucune maison definie, veuillez definir au moins une maison.");
         }
         if (generateurs.isEmpty()) {
-            problemes.add("Aucun generateur definie, veuillez definir au moins un generateur.");
+            problemes.add("Aucun generateur defini, veuillez definir au moins un generateur.");
         }
         if (!problemes.isEmpty()) {
             return problemes;
