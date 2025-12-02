@@ -146,7 +146,7 @@ public class ConsoleView {
     }
 
     // Menu 3 : Reseau charge depuis fichier (Partie 2)
-    private static void runPart2Menu(AppController controller) {
+    private void runPart2Menu(AppController controller) {
         try (Scanner scanner = new Scanner(System.in)) {
             boolean running = true;
 
@@ -157,20 +157,24 @@ public class ConsoleView {
 
                 switch (input) {
                     case "1":
-                        System.out.println("Lancement de la resolution automatique (Algorithme Génétique)...");
+                        double[] couts_avant = controller.calculerCoutReseau();
+                        afficherCout(couts_avant[0], couts_avant[1], couts_avant[2]);
+                        break;
+                    case "2":
+                        System.out.println("Lancement de la resolution automatique (Algorithme Genetique)...");
 
                         // Creation du solveur avec le reseau actuel
                         GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
 
                         // Parametres : 50 individus, 100 générations, 10% de mutation
-                        solver.solve(50, 100, 0.1);
+                        solver.solve(50, 1000, 0.1);
 
                         // Affichage du résultat
-                        double[] couts = controller.calculerCoutReseau();
+                        double[] couts_apres = controller.calculerCoutReseau();
                         System.out.println("Optimisation terminee.");
-                        System.out.printf("Nouveau cout total trouve : %.4f (Surcharge: %.4f)\n", couts[0], couts[2]);
+                        System.out.printf("Nouveau cout total trouve : %.4f (Surcharge: %.4f)\n", couts_apres[0], couts_apres[2]);
                         break;
-                    case "2":
+                    case "3":
                         System.out.print("Entrez le nom du fichier de sauvegarde : ");
                         String savePath = scanner.nextLine();
                         try {
@@ -180,7 +184,7 @@ public class ConsoleView {
                             System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
                         }
                         break;
-                    case "3":
+                    case "4":
                         running = false;
                         System.out.println("Au revoir.");
                         break;
@@ -379,9 +383,10 @@ public class ConsoleView {
 
     public static void afficherMenuPrincipalPartie2() {
         System.out.println("\n--- MENU PARTIE 2 ---");
-        System.out.println("1) Resolution automatique"); // [cite: 78]
-        System.out.println("2) Sauvegarder la solution actuelle"); // [cite: 79]
-        System.out.println("3) Fin"); // [cite: 81]
+        System.out.println("1) Calculer le cout du reseau electrique actuel");
+        System.out.println("2) Resolution automatique");
+        System.out.println("3) Sauvegarder la solution actuelle");
+        System.out.println("4) Fin");
         System.out.print("Votre choix : ");
     }
 
