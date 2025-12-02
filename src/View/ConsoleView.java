@@ -171,8 +171,9 @@ public class ConsoleView {
 
                         // Affichage du résultat
                         double[] couts_apres = controller.calculerCoutReseau();
-                        System.out.println("Optimisation terminee.");
-                        System.out.printf("Nouveau cout total trouve : %.4f (Surcharge: %.4f)\n", couts_apres[0], couts_apres[2]);
+                        System.out.println("Optimisation terminee");
+                        System.out.println("Nouveau cout total trouve :");
+                        afficherCout(couts_apres[0], couts_apres[1], couts_apres[2]);
                         break;
                     case "3":
                         System.out.print("Entrez le nom du fichier de sauvegarde : ");
