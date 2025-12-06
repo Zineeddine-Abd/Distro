@@ -378,9 +378,6 @@ public class NetworkGraphPane extends Pane {
             gc.setLineWidth(3 * zoom);
             gc.strokeOval(x - taille/2, y - taille/2, taille, taille);
 
-            // Icone eclair
-            dessinerEclair(x, y, ICON_SIZE * zoom, Color.WHITE);
-
             // Nom (au-dessus)
             gc.setFill(Color.web("#2c3e50"));
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 14 * zoom));
@@ -457,9 +454,6 @@ public class NetworkGraphPane extends Pane {
             gc.setLineWidth(3 * zoom);
             gc.strokeRect(x - taille/2, y - taille/2, taille, taille);
 
-            // Icone maison
-            dessinerMaison(x, y, ICON_SIZE * zoom, Color.WHITE);
-
             // Nom (au-dessus)
             gc.setFill(Color.web("#2c3e50"));
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 13 * zoom));
@@ -496,45 +490,6 @@ public class NetworkGraphPane extends Pane {
             case FORTE: return Color.web("#9b59b6");
             default: return Color.GRAY;
         }
-    }
-
-    private void dessinerEclair(double x, double y, double taille, Color couleur) {
-        gc.setFill(couleur);
-        gc.setStroke(couleur);
-        gc.setLineWidth(2 * zoom);
-
-        double[] xPoints = {
-                x - taille/4, x, x - taille/6,
-                x + taille/4, x, x + taille/6
-        };
-        double[] yPoints = {
-                y - taille/3, y - taille/6, y,
-                y + taille/3, y + taille/6, y
-        };
-
-        gc.fillPolygon(xPoints, yPoints, 6);
-    }
-
-    private void dessinerMaison(double x, double y, double taille, Color couleur) {
-        gc.setFill(couleur);
-        gc.setStroke(couleur);
-        gc.setLineWidth(2 * zoom);
-
-        // Base
-        double baseWidth = taille * 0.7;
-        double baseHeight = taille * 0.5;
-        gc.fillRect(x - baseWidth/2, y - baseHeight/4, baseWidth, baseHeight);
-
-        // Toit
-        double[] xPoints = {x - baseWidth/2, x, x + baseWidth/2};
-        double[] yPoints = {y - baseHeight/4, y - taille/2, y - baseHeight/4};
-        gc.fillPolygon(xPoints, yPoints, 3);
-
-        // Porte
-        gc.setFill(Color.web("#34495e"));
-        double porteWidth = taille * 0.2;
-        double porteHeight = taille * 0.3;
-        gc.fillRect(x - porteWidth/2, y + baseHeight/4 - porteHeight, porteWidth, porteHeight);
     }
 
     private void dessinerLegende() {
