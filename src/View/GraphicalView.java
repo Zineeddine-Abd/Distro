@@ -439,23 +439,49 @@ public class GraphicalView extends Application {
             String nomMaison = data[0];
             String nomGen = data[1];
 
-            // CONTRAINTE CRITIQUE: Une maison ne peut etre connectee qu'a un seul generateur
-            if (reseau.connexionExistePourMaison(nomMaison)) {
-                List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
-                String dejaConnecteA = gensConnectes.get(0);
-
-                afficherErreur("ERREUR - Contrainte violee",
-                        "La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA + "'.\n\n" +
-                                "RAPPEL: Une maison doit etre connectee a UN UNIQUE generateur.\n\n" +
-                                "Utilisez l'option 4 pour supprimer la connexion existante d'abord, " +
-                                "ou passez au Menu 2 pour modifier la connexion.");
+            // CORRECTION: Vérifier si la connexion existe déjà (éviter les doublons)
+            if (reseau.connexionExiste(nomMaison, nomGen)) {
+                afficherErreur("Connexion Existante",
+                        "La connexion entre '" + nomMaison + "' et '" + nomGen + "' existe deja.");
                 return;
             }
 
+            // CORRECTION: AVERTIR l'utilisateur s'il crée une deuxième connexion
+            // mais PERMETTRE la création (la validation se fera à l'option 5)
+            if (reseau.connexionExistePourMaison(nomMaison)) {
+                List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
+                String dejaConnecteA = String.join(", ", gensConnectes);
+
+                Alert warning = new Alert(Alert.AlertType.WARNING);
+                warning.setTitle("Attention - Connexions Multiples");
+                warning.setHeaderText("La maison '" + nomMaison + "' est deja connectee");
+                warning.setContentText(
+                        "La maison '" + nomMaison + "' est deja connectee a: " + dejaConnecteA + "\n\n" +
+                                "RAPPEL: Une maison doit etre connectee a UN SEUL generateur.\n\n" +
+                                "Vous pouvez continuer a ajouter cette connexion, mais elle sera\n" +
+                                "consideree comme INVALIDE lors de la validation (option 5).\n\n" +
+                                "Voulez-vous quand meme ajouter cette connexion ?"
+                );
+                warning.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+
+                Optional<ButtonType> choice = warning.showAndWait();
+                if (choice.isEmpty() || choice.get() == ButtonType.NO) {
+                    return; // L'utilisateur annule
+                }
+            }
+
+            // Créer la connexion (même si invalide)
             controller.addConnexion(nomMaison, nomGen);
             rafraichirGraphe();
             rafraichirInfos();
-            statusLabel.setText("INFO: Connexion creee: " + nomMaison + " <-> " + nomGen);
+
+            // Message adapté selon le cas
+            if (reseau.getConnexions().get(nomMaison).size() > 1) {
+                statusLabel.setText("AVERTISSEMENT: Connexion creee mais INVALIDE: " +
+                        nomMaison + " <-> " + nomGen + " (connexions multiples)");
+            } else {
+                statusLabel.setText("INFO: Connexion creee: " + nomMaison + " <-> " + nomGen);
+            }
         });
     }
 
