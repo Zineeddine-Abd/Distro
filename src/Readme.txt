@@ -8,8 +8,8 @@ Execution :
                 java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainConsole
                 Note : Changer le chemin "D:\JavaFX11\javafx-sdk-11\lib" selon votre installation de JavaFX.
 
-            Avec Arguments (exemple avec un fichier "r.txt") :
-                java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainCosole src/r.txt 10
+        Avec Arguments (exemple avec un fichier "r.txt") :
+            java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainCosole src/r.txt 10
 
     Executer avec JavaFX Graphical View :
         Sans Arguments :

@@ -16,8 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Interface graphique alignee a 100% avec les menus et contraintes du projet
- * Respecte l'ordre : Menu1 (Construction) -> Menu2 (Analyse) -> Menu3 (Fichier+Optimisation)
+ * Interface graphique
  */
 public class GraphicalView extends Application {
     private AppController controller;
@@ -26,10 +25,8 @@ public class GraphicalView extends Application {
     private Label coutLabel;
     private Stage primaryStage;
 
-    // Etat de l'application (Menu 1, 2 ou 3)
-    private int menuActuel = 1; // 1 = Construction, 2 = Analyse, 3 = Fichier charge
+    private int menuActuel = 1;
 
-    // Labels d'information
     private Label infoGenerateurs;
     private Label infoMaisons;
     private Label infoConnexions;
@@ -39,16 +36,13 @@ public class GraphicalView extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
 
-        // Verifier les parametres de ligne de commande
         Parameters params = getParameters();
         List<String> args = params.getRaw();
 
-        // Initialiser TOUJOURS avec un reseau vide d'abord
         Reseau reseau = new Reseau();
         controller = new AppController(reseau);
-        menuActuel = 1; // Par defaut Menu 1
+        menuActuel = 1;
 
-        // Configuration de l'interface
         BorderPane root = new BorderPane();
         root.setTop(creerBarreTitre());
         root.setCenter(creerCentrePane());
@@ -61,7 +55,7 @@ public class GraphicalView extends Application {
             String css = getClass().getResource("/styles.css").toExternalForm();
             scene.getStylesheets().add(css);
         } catch (Exception e) {
-            // Style par defaut si CSS non trouve
+            // Style par defaut
         }
 
         stage.setTitle("Reseau Electrique - Projet Programmation Avancee");
@@ -69,27 +63,23 @@ public class GraphicalView extends Application {
         stage.setMaximized(true);
         stage.show();
 
-        // CORRECTION: Charger le fichier APRES que la fenetre soit affichee
         if (!args.isEmpty()) {
             String cheminFichier = args.get(0);
             String lambdaStr = args.size() > 1 ? args.get(1) : "10";
 
-            // Utiliser Platform.runLater pour s'assurer que l'UI est prete
             javafx.application.Platform.runLater(() -> {
                 if (chargerReseauDepuisFichier(cheminFichier, lambdaStr)) {
-                    menuActuel = 3; // Menu 3 : Resolution/Sauvegarde/Fin
+                    menuActuel = 3;
                     mettreAJourMenuInfo();
                     VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox").getParent();
                     VBox actionsContainer = (VBox) actionsBox;
                     mettreAJourActions(actionsContainer);
                 } else {
-                    // Si echec de chargement, rester en Menu 1
                     menuActuel = 1;
                     mettreAJourMenuInfo();
                 }
             });
         } else {
-            // Mode manuel - initialisation normale
             rafraichirGraphe();
             rafraichirInfos();
             mettreAJourMenuInfo();
@@ -144,31 +134,17 @@ public class GraphicalView extends Application {
 
         Separator sep1 = new Separator();
 
-        // Section Actions - CHANGE SELON LE MENU
+        // Section Actions
         VBox actionsBox = new VBox(10);
-        actionsBox.setId("actionsBox"); // Pour pouvoir le mettre a jour
+        actionsBox.setId("actionsBox");
 
         mettreAJourActions(actionsBox);
 
-        // Boutons de navigation
-        Separator sep2 = new Separator();
-        Label lblVue = new Label("Affichage");
-        lblVue.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ecf0f1;");
-
-        Button btnRecentrer = creerBoutonStyleControle("Recentrer Vue");
-        btnRecentrer.setOnAction(e -> graphPane.recentrerVue());
-
-        Button btnRafraichir = creerBoutonStyleControle("Rafraichir");
-        btnRafraichir.setOnAction(e -> {
-            rafraichirGraphe();
-            rafraichirInfos();
-        });
-
+        // MODIFICATION: Suppression des boutons Affichage
         panneau.getChildren().addAll(
                 titre, new Separator(),
                 infoBox, sep1,
-                actionsBox, sep2,
-                lblVue, btnRecentrer, btnRafraichir
+                actionsBox
         );
 
         return panneau;
@@ -209,9 +185,18 @@ public class GraphicalView extends Application {
             Button btn4 = creerBoutonStyleControle("4) Supprimer Connexion");
             btn4.setOnAction(e -> supprimerConnexion());
 
-            Button btn5 = creerBoutonStyleControle("5) Fin (Valider et passer au Menu 2)");
+            // MODIFICATION: Bouton Fin vert statique au survol
+            Button btn5 = new Button("5) Fin (Valider et passer au Menu 2)");
+            btn5.setMaxWidth(Double.MAX_VALUE);
             btn5.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;");
+
+            // Garder la couleur verte au survol (un peu plus foncee)
+            btn5.setOnMouseEntered(e -> btn5.setStyle("-fx-background-color: #219150; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+            btn5.setOnMouseExited(e -> btn5.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+
             btn5.setOnAction(e -> finMenu1());
 
             actionsBox.getChildren().addAll(btn1, btn2, btn3, btn4, new Separator(), btn5);
@@ -227,9 +212,16 @@ public class GraphicalView extends Application {
             Button btn3 = creerBoutonStyleControle("3) Afficher le Reseau");
             btn3.setOnAction(e -> afficherReseau());
 
-            Button btn4 = creerBoutonStyleControle("4) Fin (Quitter)");
+            Button btn4 = new Button("4) Fin (Quitter)");
+            btn4.setMaxWidth(Double.MAX_VALUE);
             btn4.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;");
+
+            btn4.setOnMouseEntered(e -> btn4.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+            btn4.setOnMouseExited(e -> btn4.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+
             btn4.setOnAction(e -> confirmerQuitter());
 
             actionsBox.getChildren().addAll(btn1, btn2, btn3, new Separator(), btn4);
@@ -245,21 +237,29 @@ public class GraphicalView extends Application {
             Button btn2 = creerBoutonStyleControle("2) Sauvegarder Solution");
             btn2.setOnAction(e -> sauvegarderSolution());
 
-            Button btn3 = creerBoutonStyleControle("3) Fin (Quitter)");
+            Button btn3 = new Button("3) Fin (Quitter)");
+            btn3.setMaxWidth(Double.MAX_VALUE);
             btn3.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;");
+
+            // Garder la couleur rouge au survol
+            btn3.setOnMouseEntered(e -> btn3.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+            btn3.setOnMouseExited(e -> btn3.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
+                    "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
+
             btn3.setOnAction(e -> confirmerQuitter());
 
             actionsBox.getChildren().addAll(btn0, new Separator(), btn1, btn2, new Separator(), btn3);
         }
     }
 
-    // ============ MENU 1 : CONSTRUCTION ============
+    // ----------------- MENU 1 : CONSTRUCTION ----------------------
 
     private void ajouterGenerateur() {
         Dialog<Generateur> dialog = new Dialog<>();
         dialog.setTitle("Menu 1 - Option 1");
-        dialog.setHeaderText("Ajouter un Generateur\n(Cliquez ensuite sur le graphe pour le placer)");
+        dialog.setHeaderText("Ajouter un Generateur");
 
         ButtonType btnAjouter = new ButtonType("Ajouter", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnAjouter, ButtonType.CANCEL);
@@ -307,26 +307,31 @@ public class GraphicalView extends Application {
 
         Optional<Generateur> result = dialog.showAndWait();
         result.ifPresent(gen -> {
-            statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
-            graphPane.attendreClicPourPosition(pos -> {
-                boolean existed = controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
-                graphPane.setPositionGenerateur(gen.getNom(), pos);
+            // MODIFICATION: Verifier si le generateur existe deja
+            if (controller.getReseau().generateurExiste(gen.getNom())) {
+                // Mise a jour directe SANS placement
+                controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
                 rafraichirGraphe();
                 rafraichirInfos();
-
-                if (existed) {
-                    statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
-                } else {
+                statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
+            } else {
+                // Nouveau -> Mode placement
+                statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
+                graphPane.attendreClicPourPosition(pos -> {
+                    controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
+                    graphPane.setPositionGenerateur(gen.getNom(), pos);
+                    rafraichirGraphe();
+                    rafraichirInfos();
                     statusLabel.setText("INFO: Generateur " + gen.getNom() + " ajoute.");
-                }
-            }, true);
+                }, true);
+            }
         });
     }
 
     private void ajouterMaison() {
         Dialog<Maison> dialog = new Dialog<>();
         dialog.setTitle("Menu 1 - Option 2");
-        dialog.setHeaderText("Ajouter une Maison\n(Cliquez ensuite sur le graphe pour la placer)");
+        dialog.setHeaderText("Ajouter une Maison");
 
         ButtonType btnAjouter = new ButtonType("Ajouter", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnAjouter, ButtonType.CANCEL);
@@ -366,23 +371,28 @@ public class GraphicalView extends Application {
 
         Optional<Maison> result = dialog.showAndWait();
         result.ifPresent(maison -> {
-            statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
-            graphPane.attendreClicPourPosition(pos -> {
-                try {
-                    boolean existed = controller.addMaison(maison.getNom(), maison.getConsommation().name());
-                    graphPane.setPositionMaison(maison.getNom(), pos);
+            try {
+                // MODIFICATION: Verifier si la maison existe deja
+                if (controller.getReseau().maisonExiste(maison.getNom())) {
+                    // Mise a jour directe SANS placement
+                    controller.addMaison(maison.getNom(), maison.getConsommation().name());
                     rafraichirGraphe();
                     rafraichirInfos();
-
-                    if (existed) {
-                        statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
-                    } else {
+                    statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
+                } else {
+                    // Nouveau -> Mode placement
+                    statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
+                    graphPane.attendreClicPourPosition(pos -> {
+                        controller.addMaison(maison.getNom(), maison.getConsommation().name());
+                        graphPane.setPositionMaison(maison.getNom(), pos);
+                        rafraichirGraphe();
+                        rafraichirInfos();
                         statusLabel.setText("INFO: Maison " + maison.getNom() + " ajoutee.");
-                    }
-                } catch (IllegalArgumentException e) {
-                    afficherErreur("Erreur", e.getMessage());
+                    }, false);
                 }
-            }, false);
+            } catch (IllegalArgumentException e) {
+                afficherErreur("Erreur", e.getMessage());
+            }
         });
     }
 
@@ -439,15 +449,12 @@ public class GraphicalView extends Application {
             String nomMaison = data[0];
             String nomGen = data[1];
 
-            // CORRECTION: Vérifier si la connexion existe déjà (éviter les doublons)
             if (reseau.connexionExiste(nomMaison, nomGen)) {
                 afficherErreur("Connexion Existante",
                         "La connexion entre '" + nomMaison + "' et '" + nomGen + "' existe deja.");
                 return;
             }
 
-            // CORRECTION: AVERTIR l'utilisateur s'il crée une deuxième connexion
-            // mais PERMETTRE la création (la validation se fera à l'option 5)
             if (reseau.connexionExistePourMaison(nomMaison)) {
                 List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
                 String dejaConnecteA = String.join(", ", gensConnectes);
@@ -466,16 +473,14 @@ public class GraphicalView extends Application {
 
                 Optional<ButtonType> choice = warning.showAndWait();
                 if (choice.isEmpty() || choice.get() == ButtonType.NO) {
-                    return; // L'utilisateur annule
+                    return;
                 }
             }
 
-            // Créer la connexion (même si invalide)
             controller.addConnexion(nomMaison, nomGen);
             rafraichirGraphe();
             rafraichirInfos();
 
-            // Message adapté selon le cas
             if (reseau.getConnexions().get(nomMaison).size() > 1) {
                 statusLabel.setText("AVERTISSEMENT: Connexion creee mais INVALIDE: " +
                         nomMaison + " <-> " + nomGen + " (connexions multiples)");
@@ -548,7 +553,6 @@ public class GraphicalView extends Application {
             String nomMaison = data[0];
             String nomGen = data[1];
 
-            // Verification que la connexion existe bien
             if (!reseau.connexionExiste(nomMaison, nomGen)) {
                 afficherErreur("Connexion inexistante",
                         "La connexion entre " + nomMaison + " et " + nomGen + " n'existe pas.");
@@ -563,7 +567,6 @@ public class GraphicalView extends Application {
     }
 
     private void finMenu1() {
-        // VALIDATION COMPLETE avant de passer au Menu 2
         List<String> problemes = controller.validerConfigurationReseau();
 
         if (!problemes.isEmpty()) {
@@ -577,7 +580,6 @@ public class GraphicalView extends Application {
             return;
         }
 
-        // Configuration valide -> Passer au Menu 2
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Fin de la Configuration");
         confirm.setHeaderText("Configuration Terminee et Validee");
@@ -595,10 +597,9 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ============ MENU 2 : ANALYSE ============
+    // ---------------- MENU 2 : ANALYSE ---------------------
 
     private void calculerCout() {
-        // Validation avant calcul
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -641,7 +642,6 @@ public class GraphicalView extends Application {
             return;
         }
 
-        // Etape 1: Selectionner la connexion a modifier
         Dialog<String[]> dialog1 = new Dialog<>();
         dialog1.setTitle("Menu 2 - Option 2 (Etape 1/2)");
         dialog1.setHeaderText("Modifier une Connexion\n\nEtape 1: Selectionnez la connexion a modifier");
@@ -695,7 +695,6 @@ public class GraphicalView extends Application {
             String nomMaison = anciennes[0];
             String ancienGen = anciennes[1];
 
-            // Etape 2: Selectionner le nouveau generateur
             Dialog<String> dialog2 = new Dialog<>();
             dialog2.setTitle("Menu 2 - Option 2 (Etape 2/2)");
             dialog2.setHeaderText("Modifier une Connexion\n\nEtape 2: Nouvelle connexion pour " + nomMaison);
@@ -734,7 +733,6 @@ public class GraphicalView extends Application {
 
             Optional<String> result2 = dialog2.showAndWait();
             result2.ifPresent(nouveauGen -> {
-                // CONTRAINTE: Le generateur doit exister
                 if (!reseau.generateurExiste(nouveauGen)) {
                     afficherErreur("Erreur", "Le generateur selectionne n'existe pas.");
                     return;
@@ -754,7 +752,6 @@ public class GraphicalView extends Application {
 
         sb.append("=== ETAT ACTUEL DU RESEAU ELECTRIQUE ===\n\n");
 
-        // GENERATEURS
         sb.append(">> GENERATEURS (" + reseau.getGenerateurs().size() + ") :\n");
         if (reseau.getGenerateurs().isEmpty()) {
             sb.append("  Aucun generateur defini.\n");
@@ -768,7 +765,6 @@ public class GraphicalView extends Application {
                 }
                 sb.append("\n");
 
-                // Maisons connectees
                 int nbConnectees = 0;
                 for (var entry : reseau.getConnexions().entrySet()) {
                     if (entry.getValue().contains(gen.getNom())) {
@@ -787,7 +783,6 @@ public class GraphicalView extends Application {
             }
         }
 
-        // MAISONS
         sb.append(">> MAISONS (" + reseau.getMaisons().size() + ") :\n");
         if (reseau.getMaisons().isEmpty()) {
             sb.append("  Aucune maison definie.\n");
@@ -811,7 +806,6 @@ public class GraphicalView extends Application {
             }
         }
 
-        // STATISTIQUES
         sb.append("\n>> STATISTIQUES :\n");
         int capaciteTotale = reseau.getGenerateurs().values().stream()
                 .mapToInt(Generateur::getCapaciteMax).sum();
@@ -842,7 +836,7 @@ public class GraphicalView extends Application {
         statusLabel.setText("Affichage du reseau termine.");
     }
 
-    // ============ MENU 3 : FICHIER CHARGE ============
+    // ------------------- MENU 3 : FICHIER CHARGE ---------------------
 
     private boolean chargerReseauDepuisFichier(String chemin, String lambdaStr) {
         try {
@@ -855,7 +849,6 @@ public class GraphicalView extends Application {
             controller.chargerReseauDepuisFichier(chemin);
             controller.getReseau().setLambda(lambda);
 
-            // CORRECTION: Utiliser Platform.runLater pour les operations UI
             javafx.application.Platform.runLater(() -> {
                 rafraichirGraphe();
                 rafraichirInfos();
@@ -885,7 +878,6 @@ public class GraphicalView extends Application {
     private void resolutionAutomatique() {
         Reseau reseau = controller.getReseau();
 
-        // CONTRAINTE: Le reseau doit etre valide
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
             afficherErreur("Reseau Invalide",
@@ -905,7 +897,6 @@ public class GraphicalView extends Application {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             statusLabel.setText("Optimisation en cours...");
 
-            // Executer en arriere-plan
             new Thread(() -> {
                 long debut = System.currentTimeMillis();
                 double[] avant = controller.calculerCoutReseau();
@@ -944,7 +935,6 @@ public class GraphicalView extends Application {
     }
 
     private void sauvegarderSolution() {
-        // CONTRAINTE: Valider avant de sauvegarder
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
             Alert confirm = new Alert(Alert.AlertType.WARNING);
@@ -987,7 +977,7 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ============ UTILITAIRES ============
+    // UTILIS -----------------------------------------
 
     private HBox creerBarreStatut() {
         HBox barre = new HBox(20);
