@@ -161,9 +161,6 @@ public class ConsoleView {
                         afficherCout(couts_avant[0], couts_avant[1], couts_avant[2]);
                         break;
                     case "2":
-                        System.out.println("Lancement de la resolution automatique (Algorithme Genetique)...");
-                        // System.out.println("System.currentTimeMillis() avant optimisation: " +
-                        // System.currentTimeMillis());
                         long avant = System.currentTimeMillis();
                         // Creation du solveur avec le reseau actuel
                         GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
@@ -173,8 +170,7 @@ public class ConsoleView {
 
                         // Affichage du résultat
                         double[] couts_apres = controller.calculerCoutReseau();
-                        System.out.println("Optimisation terminee");
-                        System.out.println("Nouveau cout total trouve :");
+                        System.out.println("Optimisation terminee.");
                         afficherCout(couts_apres[0], couts_apres[1], couts_apres[2]);
                         long apres = System.currentTimeMillis();
                         System.out.println("Temps ecoule (ms) : " + (apres - avant));
