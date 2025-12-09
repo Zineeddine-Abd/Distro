@@ -71,9 +71,11 @@ public class GraphicalView extends Application {
                 if (chargerReseauDepuisFichier(cheminFichier, lambdaStr)) {
                     menuActuel = 3;
                     mettreAJourMenuInfo();
-                    VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox").getParent();
-                    VBox actionsContainer = (VBox) actionsBox;
-                    mettreAJourActions(actionsContainer);
+
+                    VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox");
+                    if (actionsBox != null) {
+                        mettreAJourActions(actionsBox);
+                    }
                 } else {
                     menuActuel = 1;
                     mettreAJourMenuInfo();
@@ -140,7 +142,6 @@ public class GraphicalView extends Application {
 
         mettreAJourActions(actionsBox);
 
-        // MODIFICATION: Suppression des boutons Affichage
         panneau.getChildren().addAll(
                 titre, new Separator(),
                 infoBox, sep1,
@@ -185,13 +186,11 @@ public class GraphicalView extends Application {
             Button btn4 = creerBoutonStyleControle("4) Supprimer Connexion");
             btn4.setOnAction(e -> supprimerConnexion());
 
-            // MODIFICATION: Bouton Fin vert statique au survol
             Button btn5 = new Button("5) Fin (Valider et passer au Menu 2)");
             btn5.setMaxWidth(Double.MAX_VALUE);
             btn5.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;");
 
-            // Garder la couleur verte au survol (un peu plus foncee)
             btn5.setOnMouseEntered(e -> btn5.setStyle("-fx-background-color: #219150; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
             btn5.setOnMouseExited(e -> btn5.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; " +
@@ -242,7 +241,6 @@ public class GraphicalView extends Application {
             btn3.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;");
 
-            // Garder la couleur rouge au survol
             btn3.setOnMouseEntered(e -> btn3.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; " +
                     "-fx-font-size: 13px; -fx-padding: 10; -fx-background-radius: 5;"));
             btn3.setOnMouseExited(e -> btn3.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
@@ -254,7 +252,7 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ----------------- MENU 1 : CONSTRUCTION ----------------------
+    // ============ MENU 1 : CONSTRUCTION ============
 
     private void ajouterGenerateur() {
         Dialog<Generateur> dialog = new Dialog<>();
@@ -307,15 +305,12 @@ public class GraphicalView extends Application {
 
         Optional<Generateur> result = dialog.showAndWait();
         result.ifPresent(gen -> {
-            // MODIFICATION: Verifier si le generateur existe deja
             if (controller.getReseau().generateurExiste(gen.getNom())) {
-                // Mise a jour directe SANS placement
                 controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
                 rafraichirGraphe();
                 rafraichirInfos();
                 statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
             } else {
-                // Nouveau -> Mode placement
                 statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
                 graphPane.attendreClicPourPosition(pos -> {
                     controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
@@ -372,15 +367,12 @@ public class GraphicalView extends Application {
         Optional<Maison> result = dialog.showAndWait();
         result.ifPresent(maison -> {
             try {
-                // MODIFICATION: Verifier si la maison existe deja
                 if (controller.getReseau().maisonExiste(maison.getNom())) {
-                    // Mise a jour directe SANS placement
                     controller.addMaison(maison.getNom(), maison.getConsommation().name());
                     rafraichirGraphe();
                     rafraichirInfos();
                     statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
                 } else {
-                    // Nouveau -> Mode placement
                     statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
                     graphPane.attendreClicPourPosition(pos -> {
                         controller.addMaison(maison.getNom(), maison.getConsommation().name());
@@ -591,13 +583,17 @@ public class GraphicalView extends Application {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             menuActuel = 2;
             mettreAJourMenuInfo();
-            VBox actionsBox = (VBox) ((VBox) primaryStage.getScene().getRoot().lookup("#actionsBox").getParent()).lookup("#actionsBox");
-            mettreAJourActions(actionsBox);
+
+            // Correction egalement ici pour ne pas supprimer les infos
+            VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox");
+            if (actionsBox != null) {
+                mettreAJourActions(actionsBox);
+            }
             statusLabel.setText("Configuration validee. Menu 2 actif.");
         }
     }
 
-    // ---------------- MENU 2 : ANALYSE ---------------------
+    // ============ MENU 2 : ANALYSE ============
 
     private void calculerCout() {
         List<String> problemes = controller.validerConfigurationReseau();
@@ -836,7 +832,7 @@ public class GraphicalView extends Application {
         statusLabel.setText("Affichage du reseau termine.");
     }
 
-    // ------------------- MENU 3 : FICHIER CHARGE ---------------------
+    // ============ MENU 3 : FICHIER CHARGE ============
 
     private boolean chargerReseauDepuisFichier(String chemin, String lambdaStr) {
         try {
@@ -977,7 +973,7 @@ public class GraphicalView extends Application {
         }
     }
 
-    // UTILIS -----------------------------------------
+    // ============ UTILITAIRES ============
 
     private HBox creerBarreStatut() {
         HBox barre = new HBox(20);
