@@ -23,7 +23,7 @@
                     Note : Changer le chemin "D:\JavaFX11\javafx-sdk-11\lib" selon votre installation de JavaFX.
 
             Avec Arguments (exemple avec un fichier "r.txt") :
-                java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainCosole src/r.txt 10
+                java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainCosole instances/r.txt 10
 
         Executer avec JavaFX Graphical View :
             Sans Arguments :
@@ -31,6 +31,8 @@
                 Note : Changer le chemin "D:\JavaFX11\javafx-sdk-11\lib" selon votre installation de JavaFX.
 
             Avec Arguments (exemple avec un fichier "r.txt") :
-                java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainFX src/r.txt 10
+                java --module-path "D:\JavaFX11\javafx-sdk-11\lib" --add-modules javafx.controls -cp bin MainFX instances/r.txt 10
 
         Note : Changer le chemin "D:\JavaFX11\javafx-sdk-11\lib" selon votre installation de JavaFX.
+        Note : les fichiers qui contient des instances predefinis des reseaux sont situés dans le dossier "instances"
+        Note : le deuxieme argument est optionnel (lambda) et vaut 10 par defaut si non fourni.
