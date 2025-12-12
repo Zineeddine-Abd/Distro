@@ -309,6 +309,13 @@ public class GraphicalView extends Application {
                 controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
                 rafraichirGraphe();
                 rafraichirInfos();
+
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Modification Generateur");
+                alert.setHeaderText("Generateur existant");
+                alert.setContentText("Le generateur '" + gen.getNom() + "' existe deja.\n" + "Sa capacite a ete mise a jour a " + gen.getCapaciteMax() + " kW.");
+                alert.showAndWait();
+
                 statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
             } else {
                 statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
@@ -371,6 +378,13 @@ public class GraphicalView extends Application {
                     controller.addMaison(maison.getNom(), maison.getConsommation().name());
                     rafraichirGraphe();
                     rafraichirInfos();
+
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Modification Maison");
+                    alert.setHeaderText("Maison existante");
+                    alert.setContentText("La maison '" + maison.getNom() + "' existe deja.\n" + "Sa consommation a ete mise a jour (" + maison.getConsommation().name() + ").");
+                    alert.showAndWait();
+
                     statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
                 } else {
                     statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
