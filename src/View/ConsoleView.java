@@ -26,7 +26,7 @@ public class ConsoleView {
         this.scanner = new Scanner(System.in);
     }
 
-    // Demarrage la boucle principale de l'application.
+    // Demarrage la boucle principale de l application.
     public void start(String[] args) {
         // Case 1: No arguments -> Manual Mode (Part 1)
         if (args.length == 0) {
@@ -44,19 +44,19 @@ public class ConsoleView {
 
                     // Optional: Validate that lambda is positive
                     if (lambda <= 0) {
-                        System.err.println("ERREUR : La pénalité (lambda) doit être un entier positif.");
+                        System.err.println("ERREUR : La penalite (lambda) doit etre un entier positif.");
                         System.exit(1);
                     }
 
                 } catch (NumberFormatException e) {
                     // Requirement: Handle exception if user types "abc" or float
                     System.err.println(
-                            "ERREUR : La valeur de pénalité '" + args[1] + "' n'est pas valide (entier attendu).");
+                            "ERREUR : La valeur de penalite '" + args[1] + "' n est pas valide (entier attendu).");
                     System.exit(1);
                 }
             } else {
                 System.out.println(
-                        "INFO : Pas de pénalité spécifiée, utilisation de la valeur par défaut (lu depuis le fichier des constantes Model/Constants.java) ("
+                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) ("
                                 + LAMBDA + ").");
             }
 
@@ -165,10 +165,10 @@ public class ConsoleView {
                         // Creation du solveur avec le reseau actuel
                         GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
 
-                        // Parametres : 50 individus, 100 générations, 10% de mutation
+                        // Parametres : 50 individus, 100 generations, 10% de mutation
                         solver.solve(50, 1000, 0.1);
 
-                        // Affichage du résultat
+                        // Affichage du resultat
                         double[] couts_apres = controller.calculerCoutReseau();
                         System.out.println("Optimisation terminee.");
                         afficherCout(couts_apres[0], couts_apres[1], couts_apres[2]);
@@ -197,7 +197,7 @@ public class ConsoleView {
     }
 
     // --- Logique de traitement des entrees utilisateur ---
-    // Ajout d'un generateur
+    // Ajout d un generateur
     private void traiterAjoutGenerateur() {
         System.out.print("Entrez le nom et la capacite du generateur (ex: G1 60) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -210,13 +210,13 @@ public class ConsoleView {
 
         boolean existed = controller.addGenerateur(nom, capacite);
         if (existed) {
-            afficherAvertissement("Le generateur " + nom + " a ete mis à jour avec succes.");
+            afficherAvertissement("Le generateur " + nom + " a ete mis a jour avec succes.");
         } else {
             afficherMessage("Generateur " + nom + " ajoutee");
         }
     }
 
-    // Ajout d'une maison
+    // Ajout d une maison
     private void traiterAjoutMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -228,7 +228,7 @@ public class ConsoleView {
         try {
             boolean existed = controller.addMaison(nom, entrees[1]);
             if (existed) {
-                afficherAvertissement("La maison " + nom + " a ete mise à jour avec succes.");
+                afficherAvertissement("La maison " + nom + " a ete mise a jour avec succes.");
             } else {
                 afficherMessage("Maison " + nom + " ajoutee.");
             }
@@ -237,9 +237,9 @@ public class ConsoleView {
         }
     }
 
-    // Ajout d'une connexion entre une maison et un generateur
+    // Ajout d une connexion entre une maison et un generateur
     private void traiterAjoutConnexion() {
-        System.out.print("Entrez le nom de la maison et du generateur à connecter (ex: M1 G1) : ");
+        System.out.print("Entrez le nom de la maison et du generateur a connecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
         if (entrees.length != 2) {
             afficherErreur("Format incorrect");
@@ -256,7 +256,7 @@ public class ConsoleView {
             nomMaison = nom2;
             nomGenerateur = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
@@ -264,9 +264,9 @@ public class ConsoleView {
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
-    // Suppression d'une connexion entre une maison et un generateur
+    // Suppression d une connexion entre une maison et un generateur
     private void traiterSuppressionConnexion() {
-        System.out.print("Entrez le nom de la maison et du generateur à deconnecter (ex: M1 G1) : ");
+        System.out.print("Entrez le nom de la maison et du generateur a deconnecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
         if (entrees.length != 2) {
             afficherErreur("Format incorrect");
@@ -283,12 +283,12 @@ public class ConsoleView {
             nomMaison = nom2;
             nomGenerateur = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
         if (!reseau.connexionExiste(nomMaison, nomGenerateur)) {
-            afficherErreur("La connexion entre " + nomMaison + " et " + nomGenerateur + " n'existe pas.");
+            afficherErreur("La connexion entre " + nomMaison + " et " + nomGenerateur + " n existe pas.");
             return;
         }
 
@@ -296,11 +296,11 @@ public class ConsoleView {
         afficherMessage("Connexion supprimee entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
-    // Modification d'une connexion existante
+    // Modification d une connexion existante
     private void traiterModificationConnexion() {
         Reseau reseau = controller.getReseau();
 
-        System.out.print("Veuillez saisir la connexion à modifier (ex: M1 G1): ");
+        System.out.print("Veuillez saisir la connexion a modifier (ex: M1 G1): ");
         String[] ancienne = scanner.nextLine().split(" ");
         if (ancienne.length != 2) {
             afficherErreur("Format incorrect");
@@ -317,12 +317,12 @@ public class ConsoleView {
             nomMaisonAncienne = nom2;
             nomGenAncien = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
         if (!reseau.connexionExiste(nomMaisonAncienne, nomGenAncien)) {
-            afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n'existe pas");
+            afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n existe pas");
             return;
         }
 
@@ -345,7 +345,7 @@ public class ConsoleView {
             nomMaisonNouvelle = nom2;
             nomGenNouveau = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
@@ -357,10 +357,10 @@ public class ConsoleView {
         controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
 
         afficherMessage(
-                "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
+                "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " a " + nomGenNouveau + ".");
     }
 
-    // --- Methodes d'affichage ---7
+    // --- Methodes d affichage ---7
     // Affichage du menu principal
     public void afficherMenuPrincipal() {
         System.out.println("\n--- MENU DE CONFIGURATION ---");
@@ -372,9 +372,9 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
-    // Affichage du menu d'analyse
+    // Affichage du menu d analyse
     public void afficherMenuAnalyse() {
-        System.out.println("\n--- MENU D'ANALYSE ---");
+        System.out.println("\n--- MENU D ANALYSE ---");
         System.out.println("1) Calculer le cout du reseau electrique actuel");
         System.out.println("2) Modifier une connexion");
         System.out.println("3) Afficher le reseau");
@@ -391,7 +391,7 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
-    // --- Messages d'information ---
+    // --- Messages d information ---
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
@@ -421,17 +421,17 @@ public class ConsoleView {
         }
     }
 
-    // Affichage de l'etat actuel du reseau
+    // Affichage de l etat actuel du reseau
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
-        // Affichage des générateurs et de leurs connexions
+        // Affichage des generateurs et de leurs connexions
         if (reseau.getGenerateurs().isEmpty()) {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
-            System.out.println("\n>> Genérateurs et connexions :");
+            System.out.println("\n>> Generateurs et connexions :");
 
-            // Recrée la map inversée (Générateur -> Liste de Maisons) manuellement
+            // Recree la map inversee (Generateur -> Liste de Maisons) manuellement
             Map<String, List<String>> maisonsParGenerateur = new HashMap<>();
             for (String nomGenerateur : reseau.getGenerateurs().keySet()) {
                 maisonsParGenerateur.put(nomGenerateur, new ArrayList<>());
@@ -441,7 +441,7 @@ public class ConsoleView {
                 String nomMaison = entry.getKey();
                 List<String> generateursConnectes = entry.getValue();
 
-                // Ajoute la maison à la liste de CHACUN de ses générateurs
+                // Ajoute la maison a la liste de CHACUN de ses generateurs
                 for (String nomGenerateur : generateursConnectes) {
                     if (maisonsParGenerateur.containsKey(nomGenerateur)) {
                         maisonsParGenerateur.get(nomGenerateur).add(nomMaison);
@@ -458,7 +458,7 @@ public class ConsoleView {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
                         if (maison != null) {
-                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(),
+                            System.out.printf("  -> Connecte a %s (%d kW)\n", maison.getNom(),
                                     maison.getConsommationKw());
                         }
                     }
@@ -478,9 +478,9 @@ public class ConsoleView {
                 if (gens == null || gens.isEmpty()) {
                     statut = "non connectee";
                 } else if (gens.size() == 1) {
-                    statut = "connectee à " + gens.get(0);
+                    statut = "connectee a " + gens.get(0);
                 } else {
-                    statut = "connectee à PLUSIEURS: " + String.join(", ", gens);
+                    statut = "connectee a PLUSIEURS: " + String.join(", ", gens);
                 }
 
                 System.out.printf("- %s (%s kW) - %s\n", maison.getNom(), maison.getConsommation().name(), statut);

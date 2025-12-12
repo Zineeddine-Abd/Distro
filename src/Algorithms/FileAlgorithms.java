@@ -25,7 +25,7 @@ import Model.Maison;
 
 public class FileAlgorithms {
 
-    // Regex générique pour capturer la structure : type(arg1, arg2).
+    // Regex generique pour capturer la structure : type(arg1, arg2).
     private static String regex = "^([a-z]+)\\(([a-zA-Z0-9]+),([a-zA-Z0-9]+)\\)\\.$";
 
     private static final Pattern LINE_PATTERN = Pattern
@@ -38,7 +38,7 @@ public class FileAlgorithms {
             throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException {
         File fichier = new File(cheminFichier);
         if (!fichier.exists()) {
-            throw new FileNotFoundException("Le fichier spécifié est introuvable : " + cheminFichier);
+            throw new FileNotFoundException("Le fichier specifie est introuvable : " + cheminFichier);
         }
         Reseau reseau = new Reseau();
         sommeCapacitesGenerateurs = 0;
@@ -66,7 +66,7 @@ public class FileAlgorithms {
                 if (!matcher.matches()) {
                     // We throw the custom exception with the specific line number
                     throw new FileSyntaxException(
-                            "Format incorrect ou parenthèse/point manquant",
+                            "Format incorrect ou parenthese/point manquant",
                             numeroLigne,
                             ligne);
                 }
@@ -79,7 +79,7 @@ public class FileAlgorithms {
                     case "generateur":
                         if (sectionEncours > 1)
                             throw new FileSyntaxException(
-                                    "Les générateurs doivent être définis en premier.", numeroLigne, ligne);
+                                    "Les generateurs doivent etre definis en premier.", numeroLigne, ligne);
                         sectionEncours = 1;
                         try {
                             int capacite = Integer.parseInt(arg2);
@@ -90,17 +90,17 @@ public class FileAlgorithms {
                             reseau.addOrUpdateGenerateur(gen);
                             generateurs.put(arg1, gen);
 
-                            // MISE À JOUR DE LA CAPACITÉ TOTALE
+                            // MISE A JOUR DE LA CAPACITE TOTALE
                             sommeCapacitesGenerateurs += capacite;
 
                         } catch (NumberFormatException e) {
-                            throw new FileSyntaxException("La capacité doit être un entier.", numeroLigne, ligne);
+                            throw new FileSyntaxException("La capacite doit etre un entier.", numeroLigne, ligne);
                         }
                         break;
                     case "maison":
                         if (sectionEncours > 2)
                             throw new FileSyntaxException(
-                                    "Les maisons doivent être définies après les générateurs et avant les connexions.", numeroLigne,
+                                    "Les maisons doivent etre definies apres les generateurs et avant les connexions.", numeroLigne,
                                     ligne);
                         sectionEncours = 2;
 
@@ -113,13 +113,13 @@ public class FileAlgorithms {
                             // 1. On ajoute la consommation de cette nouvelle maison au cumul
                             sommeBesoinsMaisons += conso.getValeurKw();
 
-                            // 2. VÉRIFICATION IMMÉDIATE : A-t-on dépassé le plafond ?
-                            // La contrainte globale est : Somme(Demandes) <= Somme(Capacités)
+                            // 2. VERIFICATION IMMEDIATE : A-t-on depasse le plafond ?
+                            // La contrainte globale est : Somme(Demandes) <= Somme(Capacites)
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
                                 throw new FileSyntaxException(
-                                        "CAPACITÉ GLOBALE DÉPASSÉE : L'ajout de la maison '" + arg1 + "' (" + conso.getValeurKw() + "kW) " +
-                                                "porte la demande totale à " + sommeBesoinsMaisons
-                                                + "kW, ce qui dépasse la capacité totale des générateurs (" +
+                                        "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' (" + conso.getValeurKw() + "kW) " +
+                                                "porte la demande totale a " + sommeBesoinsMaisons
+                                                + "kW, ce qui depasse la capacite totale des generateurs (" +
                                                 sommeCapacitesGenerateurs + "kW).",
                                         numeroLigne,
                                         ligne);
@@ -134,10 +134,10 @@ public class FileAlgorithms {
                     case "connexion":
                         if (sectionEncours < 2)
                             throw new FileSyntaxException(
-                                    "Les connexions doivent être définies après les générateurs et les maisons.", numeroLigne, ligne);
+                                    "Les connexions doivent etre definies apres les generateurs et les maisons.", numeroLigne, ligne);
                         sectionEncours = 3;
 
-                        // C'est ici que se fait la validation "au vol" avec le numéro de ligne
+                        // C'est ici que se fait la validation "au vol" avec le numero de ligne
                         parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
                         break;
                     default:
@@ -153,17 +153,17 @@ public class FileAlgorithms {
         }
 
         // --- Validation Finale (Post-Lecture) ---
-        // Certaines erreurs ne peuvent pas être détectées ligne par ligne (ex: Maison
+        // Certaines erreurs ne peuvent pas etre detectees ligne par ligne (ex: Maison
         // sans aucune connexion).
-        // On les vérifie ici. Si une erreur est trouvée, on ne peut pas donner de ligne
-        // précise (d'où line=0).
+        // On les verifie ici. Si une erreur est trouvee, on ne peut pas donner de ligne
+        // precise (d'ou line=0).
         validerCompletude(reseau);
 
         return reseau;
     }
 
     /**
-     * Valide la connexion spécifiquement pour la règle "Une maison = un générateur
+     * Valide la connexion specifiquement pour la regle "Une maison = un generateur
      * unique".
      */
     private static void parseEtValiderConnexion(Reseau reseau, String arg1, String arg2, int line, String content)
@@ -171,7 +171,7 @@ public class FileAlgorithms {
         String nomMaison = null;
         String nomGen = null;
 
-        // 1. Identification : Qui est la maison ? Qui est le générateur ?
+        // 1. Identification : Qui est la maison ? Qui est le generateur ?
         // (La partie 1 permet l'ordre "M G" ou "G M") [cite: 227]
         if (reseau.maisonExiste(arg1) && reseau.generateurExiste(arg2)) {
             nomMaison = arg1;
@@ -180,43 +180,43 @@ public class FileAlgorithms {
             nomMaison = arg2;
             nomGen = arg1;
         } else {
-            // ERREUR : Élément introuvable
-            // "Il faut bien entendu que le générateur et la maison aient été créés au
-            // préalable"
+            // ERREUR : Element introuvable
+            // "Il faut bien entendu que le generateur et la maison aient ete crees au
+            // prealable"
             throw new FileSyntaxException(
-                    "Connexion impossible : l'un des éléments (" + arg1 + ", " + arg2 + ") n'a pas été défini plus haut.",
+                    "Connexion impossible : l'un des elements (" + arg1 + ", " + arg2 + ") n'a pas ete defini plus haut.",
                     line, content);
         }
 
-        // 2. VALIDATION SÉMANTIQUE (Règle d'unicité)
-        // [cite: 204] "Une maison doit obligatoirement être raccordée à un unique
-        // générateur."
+        // 2. VALIDATION SEMANTIQUE (Regle d'unicite)
+        // [cite: 204] "Une maison doit obligatoirement etre raccordee a un unique
+        // generateur."
         if (reseau.connexionExistePourMaison(nomMaison)) {
-            // Note: Il faut ajouter une petite méthode utilitaire dans Reseau ou vérifier
+            // Note: Il faut ajouter une petite methode utilitaire dans Reseau ou verifier
             // la map directement
-            // Si la map des connexions contient déjà une clé pour cette maison, c'est une
+            // Si la map des connexions contient deja une cle pour cette maison, c'est une
             // erreur.
             List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
             String dejaConnecteA = gensConnectes.get(0);
 
             throw new FileSyntaxException(
-                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est déjà connectée au générateur '" + dejaConnecteA + "'. "
-                            + "Impossible de la connecter aussi à '" + nomGen + "'.",
+                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA + "'. "
+                            + "Impossible de la connecter aussi a '" + nomGen + "'.",
                     line, content);
         }
 
-        // Si tout est valide, on crée la connexion
+        // Si tout est valide, on cree la connexion
         reseau.creerConnexion(nomMaison, nomGen);
     }
 
     /**
-     * Vérifications globales qui ne peuvent se faire qu'à la fin du fichier.
+     * Verifications globales qui ne peuvent se faire qu'a la fin du fichier.
      */
     private static void validerCompletude(Reseau reseau) throws ReseauInvalideException {
 
         List<String> problemes = reseau.validerConfiguration();
         if (!problemes.isEmpty()) {
-            // On lance (crée) l'exception avec TOUTE la liste des problèmes
+            // On lance (cree) l'exception avec TOUTE la liste des problemes
             throw new ReseauInvalideException(problemes);
         }
 
