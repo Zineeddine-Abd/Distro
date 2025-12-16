@@ -19,35 +19,62 @@ import java.util.*;
  * Panneau de visualisation du graphe du reseau electrique
  */
 public class NetworkGraphPane extends Pane {
+
+    // Reference vers le cerveau de l'application pour recuperer les donnees du reseau
     private AppController controller;
+
+    // La zone de dessin (la toile) ou tout sera affiche
     private final Canvas canvas;
+
+    // L'outil (le pinceau) qui permet de dessiner des formes sur la toile
     private final GraphicsContext gc;
 
-    // Etat de la vue
+    // Le decalage horizontal de la camera (pour se deplacer a gauche ou a droite)
     private double offsetX = 0;
+
+    // Le decalage vertical de la camera (pour se deplacer en haut ou en bas)
     private double offsetY = 0;
+
+    // Le niveau de grossissement actuel de la vue (1.0 = normal)
     private double zoom = 1.0;
+
+    // La limite minimale pour dezoomer (voir de loin)
     private final double MIN_ZOOM = 0.3;
+
+    // La limite maximale pour zoomer (voir de pres)
     private final double MAX_ZOOM = 3.0;
 
-    // Positions des noeuds (STOCKEES EN COORDONNEES REELLES, PAS TRANSFORMEES)
+    // Memoire des positions exactes de chaque generateur sur le plan
     private final Map<String, Point2D> positionsGenerateurs = new HashMap<>();
+
+    // Memoire des positions exactes de chaque maison sur le plan
     private final Map<String, Point2D> positionsMaisons = new HashMap<>();
 
-    // Interaction
+    // Memorise ou la souris a clique pour la derniere fois
     private Point2D dernierClic;
+
+    // Le nom de l'objet (maison ou generateur) actuellement sous la souris ou en cours de deplacement
     private String elementSelectionne = null;
+
+    // Permet de savoir si l'objet selectionne est un generateur (vrai) ou une maison (faux)
     private boolean estGenerateur = false;
+
+    // Indique si l'utilisateur est en train de glisser la souris pour deplacer quelque chose
     private boolean dragEnCours = false;
 
-    // Mode placement
+    // Indique si le programme attend que l'utilisateur clique quelque part pour poser un objet
     private boolean modeAttenteClic = false;
+
+    // Une fonction a executer une fois que l'utilisateur a clique pour donner la position
     private java.util.function.Consumer<Point2D> callbackPosition;
+
+    // Indique si l'objet qu'on veut placer est un generateur
     private boolean estGenerateurEnPlacement = false;
 
-    // Parametres visuels
+    // La taille standard des ronds et des carres dessines
     private static final double NODE_SIZE = 50;
 
+    // Initialise le panneau, cree la toile de dessin et configure les actions de la souris
     public NetworkGraphPane(AppController controller) {
         this.controller = controller;
 
@@ -58,26 +85,22 @@ public class NetworkGraphPane extends Pane {
 
         getChildren().add(canvas);
 
-        // Ecouteurs d'evenements
         canvas.setOnMousePressed(this::handleMousePressed);
         canvas.setOnMouseDragged(this::handleMouseDragged);
         canvas.setOnMouseReleased(this::handleMouseReleased);
         canvas.setOnScroll(this::handleScroll);
         canvas.setOnMouseMoved(this::handleMouseMoved);
 
-        // Redessiner quand la taille change
         canvas.widthProperty().addListener((obs, old, val) -> dessiner());
         canvas.heightProperty().addListener((obs, old, val) -> dessiner());
     }
 
+    // Permet de changer le controleur lie a ce panneau
     public void setController(AppController controller) {
         this.controller = controller;
     }
 
-    /**
-     * Active le mode placement
-     * L'utilisateur clique sur le graphe pour placer l'element
-     */
+    // Prepare le panneau pour que le prochain clic serve a definir la position d'un objet
     public void attendreClicPourPosition(java.util.function.Consumer<Point2D> callback, boolean estGen) {
         this.modeAttenteClic = true;
         this.callbackPosition = callback;
@@ -85,19 +108,19 @@ public class NetworkGraphPane extends Pane {
         canvas.setCursor(javafx.scene.Cursor.CROSSHAIR);
     }
 
-    /**
-     * Definir manuellement la position (en coordonnees REELLES)
-     */
+    // Enregistre manuellement la position d'un generateur donne
     public void setPositionGenerateur(String nom, Point2D pos) {
         positionsGenerateurs.put(nom, pos);
         dessiner();
     }
 
+    // Enregistre manuellement la position d'une maison donnee
     public void setPositionMaison(String nom, Point2D pos) {
         positionsMaisons.put(nom, pos);
         dessiner();
     }
 
+    // Force la mise a jour de l'affichage, en s'assurant que cela se fait au bon moment
     public void rafraichir() {
         if (javafx.application.Platform.isFxApplicationThread()) {
             calculerPositionsManquantes();
@@ -110,6 +133,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Remet la vue a zero (zoom normal, centre a l'origine)
     public void recentrerVue() {
         offsetX = 0;
         offsetY = 0;
@@ -117,9 +141,7 @@ public class NetworkGraphPane extends Pane {
         dessiner();
     }
 
-    /**
-     * Positionnement en graphe bipartite
-     */
+    // Donne une position automatique par defaut aux objets qui n'en ont pas encore
     private void calculerPositionsManquantes() {
         Reseau reseau = controller.getReseau();
 
@@ -135,7 +157,6 @@ public class NetworkGraphPane extends Pane {
         double xGenerateurs = largeur * 0.25;
         double xMaisons = largeur * 0.75;
 
-        // === GENERATEURS (Colonne gauche) ===
         List<String> gensSansPosition = new ArrayList<>();
         for (String nom : reseau.getGenerateurs().keySet()) {
             if (!positionsGenerateurs.containsKey(nom)) {
@@ -162,7 +183,6 @@ public class NetworkGraphPane extends Pane {
             }
         }
 
-        // === MAISONS (Colonne droite) ===
         List<String> maisonsSansPosition = new ArrayList<>();
         for (String nom : reseau.getMaisons().keySet()) {
             if (!positionsMaisons.containsKey(nom)) {
@@ -190,27 +210,24 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Efface tout et redessine l'ensemble du reseau (fond, grille, liens, objets, legende)
     private void dessiner() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // Fond
         gc.setFill(Color.web("#ecf0f1"));
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // Grille
         dessinerGrille();
 
-        // Connexions
         dessinerConnexions();
 
-        // Noeuds
         dessinerGenerateurs();
         dessinerMaisons();
 
-        // Legende
         dessinerLegende();
     }
 
+    // Trace une grille legere en fond pour aider a se reperer
     private void dessinerGrille() {
         gc.setStroke(Color.web("#bdc3c7", 0.3));
         gc.setLineWidth(1);
@@ -226,6 +243,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Parcourt toutes les connexions et dessine les cables electriques
     private void dessinerConnexions() {
         Reseau reseau = controller.getReseau();
         Map<String, List<String>> connexions = reseau.getConnexions();
@@ -259,6 +277,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Trace une ligne avec une fleche au milieu pour indiquer la direction
     private void dessinerLigneAvecFleche(Point2D debut, Point2D fin) {
         double startX = debut.getX();
         double startY = debut.getY();
@@ -283,6 +302,7 @@ public class NetworkGraphPane extends Pane {
         gc.strokeLine(midX, midY, x2, y2);
     }
 
+    // Dessine tous les generateurs (ronds) avec leurs informations
     private void dessinerGenerateurs() {
         Reseau reseau = controller.getReseau();
 
@@ -309,34 +329,28 @@ public class NetworkGraphPane extends Pane {
             int charge = calculerChargeGenerateur(reseau, nom);
             boolean surcharge = charge > gen.getCapaciteMax();
 
-            // Ombre
             gc.setFill(Color.web("#000000", 0.2));
             gc.fillOval(x - taille/2 + 3, y - taille/2 + 3, taille, taille);
 
-            // Cercle principal
             Color couleurPrincipale = surcharge ? Color.web("#e74c3c") : Color.web("#f39c12");
             gc.setFill(couleurPrincipale);
             gc.fillOval(x - taille/2, y - taille/2, taille, taille);
 
-            // Bordure
             gc.setStroke(nom.equals(elementSelectionne) && estGenerateur ?
                     Color.web("#2c3e50") : Color.web("#d68910"));
             gc.setLineWidth(3 * zoom);
             gc.strokeOval(x - taille/2, y - taille/2, taille, taille);
 
-            // Nom
             gc.setFill(Color.web("#2c3e50"));
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 14 * zoom));
             gc.setTextAlign(TextAlignment.CENTER);
             gc.fillText(nom, x, y - taille/2 - 12 * zoom);
 
-            // Capacite
             String capacite = String.format("%d/%d kW", charge, gen.getCapaciteMax());
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 12 * zoom));
             gc.setFill(surcharge ? Color.web("#c0392b") : Color.web("#27ae60"));
             gc.fillText(capacite, x, y + taille/2 + 22 * zoom);
 
-            // Badge connexions
             int nbConnexions = 0;
             for (List<String> gens : reseau.getConnexions().values()) {
                 if (gens.contains(nom)) nbConnexions++;
@@ -356,6 +370,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Dessine toutes les maisons (carres) avec leurs informations
     private void dessinerMaisons() {
         Reseau reseau = controller.getReseau();
 
@@ -381,16 +396,13 @@ public class NetworkGraphPane extends Pane {
 
             boolean connectee = reseau.connexionExistePourMaison(nom);
 
-            // Ombre
             gc.setFill(Color.web("#000000", 0.2));
             gc.fillRect(x - taille/2 + 3, y - taille/2 + 3, taille, taille);
 
-            // Rectangle principal
             Color couleurPrincipale = getCouleurMaison(maison.getConsommation());
             gc.setFill(couleurPrincipale);
             gc.fillRect(x - taille/2, y - taille/2, taille, taille);
 
-            // Bordure
             Color couleurBordure = nom.equals(elementSelectionne) && !estGenerateur ?
                     Color.web("#2c3e50") :
                     (connectee ? Color.web("#16a085") : Color.web("#e67e22"));
@@ -398,19 +410,16 @@ public class NetworkGraphPane extends Pane {
             gc.setLineWidth(3 * zoom);
             gc.strokeRect(x - taille/2, y - taille/2, taille, taille);
 
-            // Nom
             gc.setFill(Color.web("#2c3e50"));
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 13 * zoom));
             gc.setTextAlign(TextAlignment.CENTER);
             gc.fillText(nom, x, y - taille/2 - 12 * zoom);
 
-            // Consommation
             String conso = maison.getConsommationKw() + " kW";
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 11 * zoom));
             gc.setFill(Color.web("#7f8c8d"));
             gc.fillText(conso, x, y + taille/2 + 22 * zoom);
 
-            // Indicateur
             if (!connectee) {
                 double indicateurX = x + taille/2 - 8 * zoom;
                 double indicateurY = y - taille/2 + 8 * zoom;
@@ -427,6 +436,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Retourne la couleur associee a un niveau de consommation
     private Color getCouleurMaison(Consommation conso) {
         switch (conso) {
             case BASSE: return Color.web("#2ecc71");
@@ -436,26 +446,24 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Affiche la legende explicative sur le canvas
     private void dessinerLegende() {
         double x = 20;
         double y = 20;
         double largeur = 200;
         double hauteur = 120;
 
-        // Fond
         gc.setFill(Color.web("#ffffff", 0.9));
         gc.fillRoundRect(x, y, largeur, hauteur, 10, 10);
         gc.setStroke(Color.web("#bdc3c7"));
         gc.setLineWidth(1);
         gc.strokeRoundRect(x, y, largeur, hauteur, 10, 10);
 
-        // Titre
         gc.setFill(Color.web("#2c3e50"));
         gc.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         gc.setTextAlign(TextAlignment.LEFT);
         gc.fillText("Legende", x + 10, y + 25);
 
-        // Items
         gc.setFont(Font.font("Arial", FontWeight.NORMAL, 11));
 
         gc.setFill(Color.web("#f39c12"));
@@ -479,8 +487,7 @@ public class NetworkGraphPane extends Pane {
         gc.fillText("Maison (Forte)", x + 35, y + 112);
     }
 
-    // ============ GESTION DES EVENEMENTS ============
-
+    // Gere le clic de la souris (selection ou placement)
     private void handleMousePressed(MouseEvent e) {
         dernierClic = new Point2D(e.getX(), e.getY());
 
@@ -503,6 +510,7 @@ public class NetworkGraphPane extends Pane {
         dessiner();
     }
 
+    // Gere le deplacement de la souris (drag de la vue ou d'un element)
     private void handleMouseDragged(MouseEvent e) {
         if (dragEnCours && elementSelectionne != null) {
             Point2D nouvellePos = inverserTransformation(new Point2D(e.getX(), e.getY()));
@@ -522,11 +530,13 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Gere le relachement du bouton de la souris (fin du drag)
     private void handleMouseReleased(MouseEvent e) {
         dragEnCours = false;
         dernierClic = null;
     }
 
+    // Gere le zoom avec la molette de la souris
     private void handleScroll(ScrollEvent e) {
         double facteur = e.getDeltaY() > 0 ? 1.1 : 0.9;
         double nouveauZoom = zoom * facteur;
@@ -543,6 +553,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Change le curseur selon ce qui se trouve sous la souris
     private void handleMouseMoved(MouseEvent e) {
         if (modeAttenteClic) {
             canvas.setCursor(javafx.scene.Cursor.CROSSHAIR);
@@ -559,6 +570,7 @@ public class NetworkGraphPane extends Pane {
         }
     }
 
+    // Identifie quel element se trouve sous une position donnee
     private String trouverElementSousPointeur(Point2D pointeur) {
         Point2D posInversee = inverserTransformation(pointeur);
         double taille = NODE_SIZE / 2;
@@ -582,6 +594,7 @@ public class NetworkGraphPane extends Pane {
         return null;
     }
 
+    // Convertit des coordonnees reelles en coordonnees ecran (avec zoom et decalage)
     private Point2D transformerPoint(Point2D point) {
         if (point == null) return null;
         return new Point2D(
@@ -590,6 +603,7 @@ public class NetworkGraphPane extends Pane {
         );
     }
 
+    // Convertit des coordonnees ecran en coordonnees reelles (inverse du zoom et decalage)
     private Point2D inverserTransformation(Point2D point) {
         return new Point2D(
                 (point.getX() - offsetX) / zoom,
@@ -597,6 +611,7 @@ public class NetworkGraphPane extends Pane {
         );
     }
 
+    // Calcule la charge actuelle d'un generateur en sommant la consommation de ses maisons connectees
     private int calculerChargeGenerateur(Reseau reseau, String nomGen) {
         int charge = 0;
         for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {

@@ -29,12 +29,12 @@ public class Reseau {
 
     private int lambda = LAMBDA;
 
-    // NEW: Setter to update lambda from Main
+    // Setter to update lambda from Main
     public void setLambda(int lambda) {
         this.lambda = lambda;
     }
 
-    // NEW: Getter (optional, but good for debugging)
+    // Getter (optional, but good for debugging)
     public int getLambda() {
         return lambda;
     }
@@ -60,8 +60,7 @@ public class Reseau {
         generateurs.put(generateur.getNom(), generateur);
     }
 
-    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est
-    // ajoutée à la liste.
+    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est ajoutée à la liste.
     public void creerConnexion(String nomMaison, String nomGenerateur) {
         // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si
         // elle n'existe pas.
@@ -80,8 +79,7 @@ public class Reseau {
         }
     }
 
-    // Remplace toutes les connexions d'une maison par une nouvelle connexion
-    // unique, Utilise pour la modification
+    // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
     public void setConnexionUnique(String nomMaison, String nomGenerateur) {
         List<String> nouvelleListe = new ArrayList<>();
         nouvelleListe.add(nomGenerateur);
@@ -170,12 +168,9 @@ public class Reseau {
      * Le calcul de coût ne fonctionne QUE sur un réseau valide.
      * On suppose qu'il n'est appelé toujours que lorsque la configuration est
      * valide.
-     * Cette méthode ne comptera la charge que pour les maisons ayant UNE SEULE
-     * connexion.
      */
 
-    // Calcule le cout total du reseau en fonction de la dispersion et de la
-    // surcharge.
+    // Calcule le cout total du reseau en fonction de la dispersion et de la surcharge.
     // Retourne un tableau de double : [coutTotal, dispersion, surcharge]
     public double[] calculerCout() {
         if (generateurs.isEmpty())
@@ -193,8 +188,7 @@ public class Reseau {
         return new double[] { coutTotal, dispersion, surcharge };
     }
 
-    // Calcule la charge totale pour chaque générateur (la somme des capacite des
-    // masions connectés).
+    // Calcule la charge totale pour chaque générateur (la somme des capacite des masions connectés).
     private Map<String, Integer> calculerCharges() {
         Map<String, Integer> charges = new HashMap<>();
         generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges a 0

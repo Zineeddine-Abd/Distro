@@ -18,63 +18,66 @@ import java.util.Scanner;
 // Gere tous les affichages et les saisies de la console.
 
 public class ConsoleView {
+    // Reference au controller de l'application
     private final AppController controller;
+
+    // Scanner pour lire les entrees utilisateur
     private final Scanner scanner;
 
+    // Constructeur
     public ConsoleView(AppController controller) {
         this.controller = controller;
         this.scanner = new Scanner(System.in);
     }
 
-    // Demarrage la boucle principale de l application.
+    // Démarrage la boucle principale de l'application.
     public void start(String[] args) {
-        // Case 1: No arguments -> Manual Mode (Part 1)
+        // Case 1: pas d'arguments -> Mode Manuel (Part 1)
         if (args.length == 0) {
             System.out.println("Mode manuel active (Aucun fichier fourni).");
             gererMenuConfiguration();
         }
-        // Case 2: Arguments provided -> File Mode (Part 2)
+        // Case 2: Avec arguments -> Mode fichier (Part 2)
         else {
             String cheminFichier = args[0];
             int lambda = LAMBDA;
-            // Check if lambda is provided in args[1]
+            // Verifier si lambda est args[1]
             if (args.length >= 2) {
                 try {
                     lambda = Integer.parseInt(args[1]);
 
-                    // Optional: Validate that lambda is positive
+                    // Validé que lambda est positif
                     if (lambda <= 0) {
                         System.err.println("ERREUR : La penalite (lambda) doit etre un entier positif.");
                         System.exit(1);
                     }
 
                 } catch (NumberFormatException e) {
-                    // Requirement: Handle exception if user types "abc" or float
+                    // gerer l'erreur de format de lambda
                     System.err.println(
                             "ERREUR : La valeur de penalite '" + args[1] + "' n est pas valide (entier attendu).");
                     System.exit(1);
                 }
             } else {
                 System.out.println(
-                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) ("
-                                + LAMBDA + ").");
+                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) (" + LAMBDA + ").");
             }
 
             try {
                 System.out.println("Chargement du fichier : " + cheminFichier + " ...");
 
-                // 1. Load and validate file
+                // 1- Charger et valider le reseau depuis le fichier
                 Reseau reseau = FileAlgorithms.chargerReseau(cheminFichier);
                 reseau.setLambda(lambda);
                 AppController controller = new AppController(reseau);
 
                 System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
 
-                // 2. Launch Part 2 Menu logic
-                runPart2Menu(controller);
+                // 2- Declancher le menu de la partie 2
+                gererMenuResolution(controller);
 
             } catch (Exception e) {
-                // Handle errors and exit
+                // Gerer les erreurs de chargement du fichier
                 System.err.println("ERREUR FATALE : Impossible de charger le reseau.");
                 System.err.println(e.getMessage());
                 System.exit(1);
@@ -137,7 +140,7 @@ public class ConsoleView {
                     break;
                 case "4":
                     quitter = true;
-                    System.out.println("Programme termine");
+                    System.out.println("Programme terminee");
                     break;
                 default:
                     afficherErreur("Choix invalide. Veuillez reessayer.");
@@ -146,7 +149,7 @@ public class ConsoleView {
     }
 
     // Menu 3 : Reseau charge depuis fichier (Partie 2)
-    private void runPart2Menu(AppController controller) {
+    private void gererMenuResolution(AppController controller) {
         try (Scanner scanner = new Scanner(System.in)) {
             boolean running = true;
 
@@ -162,16 +165,19 @@ public class ConsoleView {
                         break;
                     case "2":
                         long avant = System.currentTimeMillis();
+
                         // Creation du solveur avec le reseau actuel
                         GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
 
-                        // Parametres : 50 individus, 100 generations, 10% de mutation
-                        solver.solve(50, 1000, 0.1);
+                        // Paramètres vont être calculé automatiquement par le solver
+                        solver.solve();
 
                         // Affichage du resultat
                         double[] couts_apres = controller.calculerCoutReseau();
+
                         System.out.println("Optimisation terminee.");
                         afficherCout(couts_apres[0], couts_apres[1], couts_apres[2]);
+
                         long apres = System.currentTimeMillis();
                         System.out.println("Temps ecoule (ms) : " + (apres - avant));
                         break;
@@ -187,17 +193,17 @@ public class ConsoleView {
                         break;
                     case "4":
                         running = false;
-                        System.out.println("Au revoir.");
+                        System.out.println("Programme terminee");
                         break;
                     default:
-                        System.out.println("Choix invalide.");
+                        System.out.println("Choix invalide. Veuillez reessayer");
                 }
             }
         }
     }
 
     // --- Logique de traitement des entrees utilisateur ---
-    // Ajout d un generateur
+    // Ajout d'un generateur
     private void traiterAjoutGenerateur() {
         System.out.print("Entrez le nom et la capacite du generateur (ex: G1 60) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -216,7 +222,7 @@ public class ConsoleView {
         }
     }
 
-    // Ajout d une maison
+    // Ajout d'une maison
     private void traiterAjoutMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -237,7 +243,7 @@ public class ConsoleView {
         }
     }
 
-    // Ajout d une connexion entre une maison et un generateur
+    // Ajout d'une connexion entre une maison et un generateur
     private void traiterAjoutConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur a connecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -264,7 +270,7 @@ public class ConsoleView {
         afficherMessage("Connexion cree entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
-    // Suppression d une connexion entre une maison et un generateur
+    // Suppression d'une connexion entre une maison et un generateur
     private void traiterSuppressionConnexion() {
         System.out.print("Entrez le nom de la maison et du generateur a deconnecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
@@ -296,7 +302,7 @@ public class ConsoleView {
         afficherMessage("Connexion supprimee entre " + nomMaison + " et " + nomGenerateur + ".");
     }
 
-    // Modification d une connexion existante
+    // Modification d'une connexion existante
     private void traiterModificationConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -360,7 +366,7 @@ public class ConsoleView {
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " a " + nomGenNouveau + ".");
     }
 
-    // --- Methodes d affichage ---7
+    // --- Méthodes d affichage ---
     // Affichage du menu principal
     public void afficherMenuPrincipal() {
         System.out.println("\n--- MENU DE CONFIGURATION ---");
@@ -382,6 +388,7 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    // Affichage du menu principal de la partie 2
     public static void afficherMenuPrincipalPartie2() {
         System.out.println("\n--- MENU PARTIE 2 ---");
         System.out.println("1) Calculer le cout du reseau electrique actuel");
@@ -421,7 +428,7 @@ public class ConsoleView {
         }
     }
 
-    // Affichage de l etat actuel du reseau
+    // Affichage de l état actuel du reseau
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 

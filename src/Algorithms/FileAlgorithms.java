@@ -23,17 +23,25 @@ import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;
 
+// Cette classe regroupe toutes les fonctions liees a la gestion des fichiers (lecture et ecriture).
+// Elle permet de charger un reseau depuis un fichier texte et de sauvegarder un reseau existant.
 public class FileAlgorithms {
 
-    // Regex generique pour capturer la structure : type(arg1, arg2).
+    // Une expression reguliere (regex) pour verifier que chaque ligne respecte le format : mot(mot,mot).
+    // Exemple valide : maison(M1,10).
     private static String regex = "^([a-z]+)\\(([a-zA-Z0-9]+),([a-zA-Z0-9]+)\\)\\.$";
 
+    // Le modele pre-compile de la regex pour l'utiliser plus rapidement sur chaque ligne
     private static final Pattern LINE_PATTERN = Pattern
             .compile(regex);
 
+    // Variables temporaires pour verifier si la demande totale depasse la capacite totale
+    // pendant la lecture du fichier
     private static int sommeCapacitesGenerateurs = 0;
     private static int sommeBesoinsMaisons = 0;
 
+    // Lit un fichier texte ligne par ligne pour construire le reseau.
+    // Verifie la syntaxe, l'ordre des definitions et les contraintes logiques au fur et a mesure.
     public static Reseau chargerReseau(String cheminFichier)
             throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException {
         File fichier = new File(cheminFichier);
@@ -47,8 +55,9 @@ public class FileAlgorithms {
         Map<String, Generateur> generateurs = new HashMap<>();
         Map<String, Maison> maisons = new HashMap<>();
 
-        int sectionEncours = 0; // pour savoir dans quel stade de la lecture est-on actuellement :
-        // 1:Generateurs, 2:Maisons, 3: Connexions.
+        // Permet de suivre ou on en est dans le fichier pour imposer l'ordre :
+        // 1: D'abord les Generateurs, 2: Ensuite les Maisons, 3: Enfin les Connexions.
+        int sectionEncours = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(fichier))) {
             String ligne;
@@ -59,24 +68,26 @@ public class FileAlgorithms {
                 ligne = ligne.trim();
 
                 if (ligne.isEmpty())
-                    continue; // saut-de-ligne
+                    continue; // On ignore les lignes vides
 
                 Matcher matcher = LINE_PATTERN.matcher(ligne);
 
                 if (!matcher.matches()) {
-                    // We throw the custom exception with the specific line number
+                    // Si la ligne ne ressemble pas a "type(arg1,arg2).", on arrete tout avec une erreur precise
                     throw new FileSyntaxException(
                             "Format incorrect ou parenthese/point manquant",
                             numeroLigne,
                             ligne);
                 }
 
+                // On recupere les 3 morceaux de la ligne : le type (ex: generateur) et les deux arguments
                 String type = matcher.group(1);
                 String arg1 = matcher.group(2);
                 String arg2 = matcher.group(3);
 
                 switch (type) {
                     case "generateur":
+                        // Verifie qu'on n'a pas deja commence a definir des maisons ou connexions
                         if (sectionEncours > 1)
                             throw new FileSyntaxException(
                                     "Les generateurs doivent etre definis en premier.", numeroLigne, ligne);
@@ -90,7 +101,7 @@ public class FileAlgorithms {
                             reseau.addOrUpdateGenerateur(gen);
                             generateurs.put(arg1, gen);
 
-                            // MISE A JOUR DE LA CAPACITE TOTALE
+                            // On ajoute sa capacite au total disponible
                             sommeCapacitesGenerateurs += capacite;
 
                         } catch (NumberFormatException e) {
@@ -98,6 +109,7 @@ public class FileAlgorithms {
                         }
                         break;
                     case "maison":
+                        // Verifie qu'on est bien apres les generateurs et avant les connexions
                         if (sectionEncours > 2)
                             throw new FileSyntaxException(
                                     "Les maisons doivent etre definies apres les generateurs et avant les connexions.", numeroLigne,
@@ -110,11 +122,10 @@ public class FileAlgorithms {
                             reseau.addOrUpdateMaison(maison);
                             maisons.put(arg1, maison);
 
-                            // 1. On ajoute la consommation de cette nouvelle maison au cumul
+                            // On ajoute la consommation de cette maison au total demande
                             sommeBesoinsMaisons += conso.getValeurKw();
 
-                            // 2. VERIFICATION IMMEDIATE : A-t-on depasse le plafond ?
-                            // La contrainte globale est : Somme(Demandes) <= Somme(Capacites)
+                            // Verification immediate : est-ce que la demande depasse deja l'offre ?
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
                                 throw new FileSyntaxException(
                                         "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' (" + conso.getValeurKw() + "kW) " +
@@ -132,12 +143,13 @@ public class FileAlgorithms {
 
                         break;
                     case "connexion":
+                        // Verifie qu'on a fini de definir toutes les maisons et generateurs
                         if (sectionEncours < 2)
                             throw new FileSyntaxException(
                                     "Les connexions doivent etre definies apres les generateurs et les maisons.", numeroLigne, ligne);
                         sectionEncours = 3;
 
-                        // C'est ici que se fait la validation "au vol" avec le numero de ligne
+                        // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements existants)
                         parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
                         break;
                     default:
@@ -152,27 +164,21 @@ public class FileAlgorithms {
             throw new IOException("Erreur de lecture de ligne du fichier : " + fichier.toString(), e.getCause());
         }
 
-        // --- Validation Finale (Post-Lecture) ---
-        // Certaines erreurs ne peuvent pas etre detectees ligne par ligne (ex: Maison
-        // sans aucune connexion).
-        // On les verifie ici. Si une erreur est trouvee, on ne peut pas donner de ligne
-        // precise (d'ou line=0).
+        // Une fois le fichier lu en entier, on fait les verifications globales
+        // (ex: est-ce que toutes les maisons sont bien connectees ?)
         validerCompletude(reseau);
 
         return reseau;
     }
 
-    /**
-     * Valide la connexion specifiquement pour la regle "Une maison = un generateur
-     * unique".
-     */
+    // Analyse une ligne de connexion. Identifie qui est la maison et qui est le generateur,
+    // puis verifie qu'on n'essaie pas de connecter une maison qui a deja un generateur.
     private static void parseEtValiderConnexion(Reseau reseau, String arg1, String arg2, int line, String content)
             throws FileSyntaxException {
         String nomMaison = null;
         String nomGen = null;
 
-        // 1. Identification : Qui est la maison ? Qui est le generateur ?
-        // (La partie 1 permet l'ordre "M G" ou "G M") [cite: 227]
+        // On essaie de deviner qui est qui, car le format autorise connexion(M,G) ou connexion(G,M)
         if (reseau.maisonExiste(arg1) && reseau.generateurExiste(arg2)) {
             nomMaison = arg1;
             nomGen = arg2;
@@ -180,22 +186,14 @@ public class FileAlgorithms {
             nomMaison = arg2;
             nomGen = arg1;
         } else {
-            // ERREUR : Element introuvable
-            // "Il faut bien entendu que le generateur et la maison aient ete crees au
-            // prealable"
+            // Si l'un des noms n'existe pas, on arrete tout
             throw new FileSyntaxException(
                     "Connexion impossible : l'un des elements (" + arg1 + ", " + arg2 + ") n'a pas ete defini plus haut.",
                     line, content);
         }
 
-        // 2. VALIDATION SEMANTIQUE (Regle d'unicite)
-        // [cite: 204] "Une maison doit obligatoirement etre raccordee a un unique
-        // generateur."
+        // Verifie la regle d'unicite : une maison ne peut avoir qu'un seul generateur
         if (reseau.connexionExistePourMaison(nomMaison)) {
-            // Note: Il faut ajouter une petite methode utilitaire dans Reseau ou verifier
-            // la map directement
-            // Si la map des connexions contient deja une cle pour cette maison, c'est une
-            // erreur.
             List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
             String dejaConnecteA = gensConnectes.get(0);
 
@@ -205,43 +203,37 @@ public class FileAlgorithms {
                     line, content);
         }
 
-        // Si tout est valide, on cree la connexion
         reseau.creerConnexion(nomMaison, nomGen);
     }
 
-    /**
-     * Verifications globales qui ne peuvent se faire qu'a la fin du fichier.
-     */
+    // Effectue les dernieres validations sur le reseau complet.
+    // Si des problemes subsistent (ex: maison sans electricite), on lance une exception avec la liste des erreurs.
     private static void validerCompletude(Reseau reseau) throws ReseauInvalideException {
 
         List<String> problemes = reseau.validerConfiguration();
         if (!problemes.isEmpty()) {
-            // On lance (cree) l'exception avec TOUTE la liste des problemes
             throw new ReseauInvalideException(problemes);
         }
 
     }
 
-    /**
-     * Saves the current network configuration to a file. [cite: 84, 85]
-     */
+    // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format demande.
     public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(cheminFichier))) {
 
-            // 1. Write Generators
+            // 1- On ecrit d'abord tous les generateurs
             for (Generateur gen : reseau.getGenerateurs().values()) {
                 writer.write(String.format("generateur(%s,%d).", gen.getNom(), gen.getCapaciteMax()));
                 writer.newLine();
             }
 
-            // 2. Write Maisons
+            // 2- Ensuite toutes les maisons
             for (Maison maison : reseau.getMaisons().values()) {
                 writer.write(String.format("maison(%s,%s).", maison.getNom(), maison.getConsommation().name()));
                 writer.newLine();
             }
 
-            // 3. Write Connexions
-            // We iterate over the map to reconstruct connexions
+            // 3- Enfin toutes les connexions
             for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
                 String nomMaison = entry.getKey();
                 for (String nomGen : entry.getValue()) {

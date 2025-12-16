@@ -14,6 +14,8 @@ import java.util.List;
  */
 
 public class AppController {
+
+    // Le Reseau courant de l'application
     private Reseau reseau;
 
     public AppController(Reseau reseau) {

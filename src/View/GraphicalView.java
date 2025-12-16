@@ -16,22 +16,39 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Interface graphique
+ * Interface graphique principale de l'application.
+ * C'est ici que l'on construit la fenetre, les menus et que l'on gere les interactions
+ * de l'utilisateur (clics sur les boutons, boites de dialogue, etc.).
  */
 public class GraphicalView extends Application {
+
+    // Le cerveau de l'application qui fait le lien avec les donnees
     private AppController controller;
+
+    // La zone de dessin ou s'affiche le reseau
     private NetworkGraphPane graphPane;
+
+    // Les etiquettes de texte pour afficher des messages en bas ou a droite
     private Label statusLabel;
     private Label coutLabel;
+
+    // La fenetre principale
     private Stage primaryStage;
 
+    // Permet de savoir dans quelle etape on se trouve :
+    // 1 = Construction manuelle
+    // 2 = Analyse et calculs
+    // 3 = Mode fichier charge
     private int menuActuel = 1;
 
+    // Etiquettes pour afficher les statistiques dans le panneau de droite
     private Label infoGenerateurs;
     private Label infoMaisons;
     private Label infoConnexions;
     private Label infoMenu;
 
+    // Point d'entree de l'application JavaFX. C'est la premiere methode appelee.
+    // Elle prepare la fenetre, charge le CSS et initialise l'affichage.
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -88,11 +105,12 @@ public class GraphicalView extends Application {
         }
     }
 
+    // Cree la barre foncee tout en haut avec le titre du projet
     private VBox creerBarreTitre() {
         VBox barre = new VBox(5);
         barre.setStyle("-fx-background-color: #34495e; -fx-padding: 15;");
 
-        Label titre = new Label("RESEAU DE DISTRIBUTION D'ELECTRICITE");
+        Label titre = new Label("DISTRO - RESEAU DE DISTRIBUTION D'ELECTRICITE");
         titre.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
 
         infoMenu = new Label();
@@ -102,12 +120,15 @@ public class GraphicalView extends Application {
         return barre;
     }
 
+    // Initialise la zone centrale qui contiendra le dessin du reseau
     private Pane creerCentrePane() {
         graphPane = new NetworkGraphPane(controller);
         graphPane.setStyle("-fx-background-color: #f5f5f5;");
         return graphPane;
     }
 
+    // Construit le panneau vertical a droite qui contient les boutons d'action
+    // et les statistiques (nombre de maisons, etc.)
     private VBox creerPanneauControle() {
         VBox panneau = new VBox(15);
         panneau.setPadding(new Insets(20));
@@ -151,6 +172,7 @@ public class GraphicalView extends Application {
         return panneau;
     }
 
+    // Met a jour le texte en haut pour dire a l'utilisateur dans quel menu il se trouve
     private void mettreAJourMenuInfo() {
         switch (menuActuel) {
             case 1:
@@ -165,6 +187,7 @@ public class GraphicalView extends Application {
         }
     }
 
+    // Change les boutons disponibles a droite selon l'etape en cours (Menu 1, 2 ou 3)
     private void mettreAJourActions(VBox actionsBox) {
         actionsBox.getChildren().clear();
 
@@ -252,8 +275,10 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ============ MENU 1 : CONSTRUCTION ============
+    // MENU 1 : CONSTRUCTION -----------------------------------------------------
 
+    // Ouvre une petite fenêtre pour demander les infos d'un nouveau generateur
+    // Si valide, demande a l'utilisateur de cliquer sur le graphe pour le placer
     private void ajouterGenerateur() {
         Dialog<Generateur> dialog = new Dialog<>();
         dialog.setTitle("Menu 1 - Option 1");
@@ -330,6 +355,8 @@ public class GraphicalView extends Application {
         });
     }
 
+    // Ouvre une fenetre pour creer une maison (Nom et Type de consommation)
+    // Puis demande de la placer sur le graphe
     private void ajouterMaison() {
         Dialog<Maison> dialog = new Dialog<>();
         dialog.setTitle("Menu 1 - Option 2");
@@ -402,6 +429,7 @@ public class GraphicalView extends Application {
         });
     }
 
+    // Permet de relier une maison a un generateur via une boite de dialogue
     private void ajouterConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -496,6 +524,7 @@ public class GraphicalView extends Application {
         });
     }
 
+    // Permet de choisir une connexion existante pour la supprimer
     private void supprimerConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -572,6 +601,7 @@ public class GraphicalView extends Application {
         });
     }
 
+    // Verifie si le reseau est valide (pas d'erreurs) avant de passer a l'etape d'analyse
     private void finMenu1() {
         List<String> problemes = controller.validerConfigurationReseau();
 
@@ -607,8 +637,9 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ============ MENU 2 : ANALYSE ============
+    // MENU 2 : ANALYSE -----------------------------------------------------------
 
+    // Calcule et affiche le cout total, la dispersion et la surcharge du reseau
     private void calculerCout() {
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
@@ -643,6 +674,7 @@ public class GraphicalView extends Application {
         statusLabel.setText("Cout calcule avec succes.");
     }
 
+    // Permet de changer le generateur d'une maison en deux etapes
     private void modifierConnexion() {
         Reseau reseau = controller.getReseau();
 
@@ -756,6 +788,7 @@ public class GraphicalView extends Application {
         });
     }
 
+    // Affiche une grande fenetre de texte avec le detail de tout le reseau
     private void afficherReseau() {
         Reseau reseau = controller.getReseau();
         StringBuilder sb = new StringBuilder();
@@ -846,8 +879,9 @@ public class GraphicalView extends Application {
         statusLabel.setText("Affichage du reseau termine.");
     }
 
-    // ============ MENU 3 : FICHIER CHARGE ============
+    // MENU 3 : FICHIER CHARGE -------------------------------------------------------------
 
+    // Tente de lire un fichier texte pour construire le reseau automatiquement
     private boolean chargerReseauDepuisFichier(String chemin, String lambdaStr) {
         try {
             int lambda = Integer.parseInt(lambdaStr);
@@ -885,6 +919,8 @@ public class GraphicalView extends Application {
         }
     }
 
+    // Lance l'algorithme d'optimisation pour trouver une meilleure configuration
+    // Cette operation s'execute en arriere-plan pour ne pas bloquer l'interface
     private void resolutionAutomatique() {
         Reseau reseau = controller.getReseau();
 
@@ -912,7 +948,7 @@ public class GraphicalView extends Application {
                 double[] avant = controller.calculerCoutReseau();
 
                 GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
-                solver.solve(50, 1000, 0.1);
+                solver.solve();
 
                 double[] apres = controller.calculerCoutReseau();
                 long duree = System.currentTimeMillis() - debut;
@@ -944,6 +980,7 @@ public class GraphicalView extends Application {
         }
     }
 
+    // Ecrit la configuration actuelle dans un fichier texte choisi par l'utilisateur
     private void sauvegarderSolution() {
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
@@ -987,8 +1024,9 @@ public class GraphicalView extends Application {
         }
     }
 
-    // ============ UTILITAIRES ============
+    // UTILITAIRES -----------------------------------------------------------
 
+    // Cree la barre du bas avec le statut et le cout
     private HBox creerBarreStatut() {
         HBox barre = new HBox(20);
         barre.setPadding(new Insets(10));
@@ -1007,6 +1045,7 @@ public class GraphicalView extends Application {
         return barre;
     }
 
+    // Helper pour creer un bouton bleu
     private Button creerBoutonStyleControle(String texte) {
         Button btn = new Button(texte);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -1019,6 +1058,7 @@ public class GraphicalView extends Application {
         return btn;
     }
 
+    // Demande confirmation avant de fermer l'application (peut etre on ajoute un auto-save ici (hors de projet))
     private void confirmerQuitter() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Quitter");
@@ -1031,10 +1071,12 @@ public class GraphicalView extends Application {
         }
     }
 
+    // Redessine le graphe
     private void rafraichirGraphe() {
         graphPane.rafraichir();
     }
 
+    // Met a jour les compteurs (Nombre de maisons, generateurs, connexions)
     private void rafraichirInfos() {
         Reseau reseau = controller.getReseau();
         infoGenerateurs.setText("Generateurs: " + reseau.getGenerateurs().size());
@@ -1045,6 +1087,7 @@ public class GraphicalView extends Application {
         infoConnexions.setText("Connexions: " + nbConnexions);
     }
 
+    // Calcule la charge d'un generateur donne
     private int calculerChargeGenerateur(Reseau reseau, String nomGen) {
         int charge = 0;
         for (var entry : reseau.getConnexions().entrySet()) {
@@ -1058,6 +1101,7 @@ public class GraphicalView extends Application {
         return charge;
     }
 
+    // Affiche une boite de dialogue d'erreur standard
     private void afficherErreur(String titre, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titre);
