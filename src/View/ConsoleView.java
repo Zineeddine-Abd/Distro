@@ -4,28 +4,85 @@ import Controller.AppController;
 import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
+import Algorithms.GeneticAlgorithm;
+import Algorithms.FileAlgorithms;
+
+import static Model.Constants.LAMBDA;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 // Gere tous les affichages et les saisies de la console.
 
 public class ConsoleView {
+    // Reference au controller de l'application
     private final AppController controller;
+
+    // Scanner pour lire les entrees utilisateur
     private final Scanner scanner;
 
+    // Constructeur
     public ConsoleView(AppController controller) {
         this.controller = controller;
         this.scanner = new Scanner(System.in);
     }
 
-    // Demarrage la boucle principale de l'application.
-    public void start() {
-        gererMenuConfiguration();
+    // Démarrage la boucle principale de l'application.
+    public void start(String[] args) {
+        // Case 1: pas d'arguments -> Mode Manuel (Part 1)
+        if (args.length == 0) {
+            System.out.println("Mode manuel active (Aucun fichier fourni).");
+            gererMenuConfiguration();
+        }
+        // Case 2: Avec arguments -> Mode fichier (Part 2)
+        else {
+            String cheminFichier = args[0];
+            int lambda = LAMBDA;
+            // Verifier si lambda est args[1]
+            if (args.length >= 2) {
+                try {
+                    lambda = Integer.parseInt(args[1]);
+
+                    // Validé que lambda est positif
+                    if (lambda <= 0) {
+                        System.err.println("ERREUR : La penalite (lambda) doit etre un entier positif.");
+                        System.exit(1);
+                    }
+
+                } catch (NumberFormatException e) {
+                    // gerer l'erreur de format de lambda
+                    System.err.println(
+                            "ERREUR : La valeur de penalite '" + args[1] + "' n est pas valide (entier attendu).");
+                    System.exit(1);
+                }
+            } else {
+                System.out.println(
+                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) (" + LAMBDA + ").");
+            }
+
+            try {
+                System.out.println("Chargement du fichier : " + cheminFichier + " ...");
+
+                // 1- Charger et valider le reseau depuis le fichier
+                Reseau reseau = FileAlgorithms.chargerReseau(cheminFichier);
+                reseau.setLambda(lambda);
+                AppController controller = new AppController(reseau);
+
+                System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
+
+                // 2- Declancher le menu de la partie 2
+                gererMenuResolution(controller);
+
+            } catch (Exception e) {
+                // Gerer les erreurs de chargement du fichier
+                System.err.println("ERREUR FATALE : Impossible de charger le reseau.");
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+        }
     }
 
     // --- Gestion des menus ---
@@ -64,7 +121,7 @@ public class ConsoleView {
         }
     }
 
-    //Menu 2 : Analyse du reseau
+    // Menu 2 : Analyse du reseau
     private void gererMenuAnalyse() {
         boolean quitter = false;
         while (!quitter) {
@@ -83,10 +140,64 @@ public class ConsoleView {
                     break;
                 case "4":
                     quitter = true;
-                    System.out.println("Programme termine");
+                    System.out.println("Programme terminee");
                     break;
                 default:
                     afficherErreur("Choix invalide. Veuillez reessayer.");
+            }
+        }
+    }
+
+    // Menu 3 : Reseau charge depuis fichier (Partie 2)
+    private void gererMenuResolution(AppController controller) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            boolean running = true;
+
+            while (running) {
+                afficherMenuPrincipalPartie2();
+
+                String input = scanner.nextLine();
+
+                switch (input) {
+                    case "1":
+                        double[] couts_avant = controller.calculerCoutReseau();
+                        afficherCout(couts_avant[0], couts_avant[1], couts_avant[2]);
+                        break;
+                    case "2":
+                        long avant = System.currentTimeMillis();
+
+                        // Creation du solveur avec le reseau actuel
+                        GeneticAlgorithm solver = new GeneticAlgorithm(controller.getReseau());
+
+                        // Paramètres vont être calculé automatiquement par le solver
+                        solver.solve();
+
+                        // Affichage du resultat
+                        double[] couts_apres = controller.calculerCoutReseau();
+
+                        System.out.println("Optimisation terminee.");
+                        afficherCout(couts_apres[0], couts_apres[1], couts_apres[2]);
+
+                        long apres = System.currentTimeMillis();
+                        System.out.println("Temps ecoule (ms) : " + (apres - avant));
+                        break;
+                    case "3":
+                        System.out.print("Entrez le nom du fichier de sauvegarde : ");
+                        String savePath = scanner.nextLine();
+                        try {
+                            controller.sauvegarderReseau(savePath);
+                            System.out.println("Sauvegarde reussie dans " + savePath);
+                        } catch (Exception e) {
+                            System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
+                        }
+                        break;
+                    case "4":
+                        running = false;
+                        System.out.println("Programme terminee");
+                        break;
+                    default:
+                        System.out.println("Choix invalide. Veuillez reessayer");
+                }
             }
         }
     }
@@ -105,7 +216,7 @@ public class ConsoleView {
 
         boolean existed = controller.addGenerateur(nom, capacite);
         if (existed) {
-            afficherAvertissement("Le generateur " + nom + " a ete mis à jour avec succes.");
+            afficherAvertissement("Le generateur " + nom + " a ete mis a jour avec succes.");
         } else {
             afficherMessage("Generateur " + nom + " ajoutee");
         }
@@ -123,7 +234,7 @@ public class ConsoleView {
         try {
             boolean existed = controller.addMaison(nom, entrees[1]);
             if (existed) {
-                afficherAvertissement("La maison " + nom + " a ete mise à jour avec succes.");
+                afficherAvertissement("La maison " + nom + " a ete mise a jour avec succes.");
             } else {
                 afficherMessage("Maison " + nom + " ajoutee.");
             }
@@ -134,7 +245,7 @@ public class ConsoleView {
 
     // Ajout d'une connexion entre une maison et un generateur
     private void traiterAjoutConnexion() {
-        System.out.print("Entrez le nom de la maison et du generateur à connecter (ex: M1 G1) : ");
+        System.out.print("Entrez le nom de la maison et du generateur a connecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
         if (entrees.length != 2) {
             afficherErreur("Format incorrect");
@@ -151,7 +262,7 @@ public class ConsoleView {
             nomMaison = nom2;
             nomGenerateur = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
@@ -161,7 +272,7 @@ public class ConsoleView {
 
     // Suppression d'une connexion entre une maison et un generateur
     private void traiterSuppressionConnexion() {
-        System.out.print("Entrez le nom de la maison et du generateur à deconnecter (ex: M1 G1) : ");
+        System.out.print("Entrez le nom de la maison et du generateur a deconnecter (ex: M1 G1) : ");
         String[] entrees = scanner.nextLine().split(" ");
         if (entrees.length != 2) {
             afficherErreur("Format incorrect");
@@ -178,12 +289,12 @@ public class ConsoleView {
             nomMaison = nom2;
             nomGenerateur = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
         if (!reseau.connexionExiste(nomMaison, nomGenerateur)) {
-            afficherErreur("La connexion entre " + nomMaison + " et " + nomGenerateur + " n'existe pas.");
+            afficherErreur("La connexion entre " + nomMaison + " et " + nomGenerateur + " n existe pas.");
             return;
         }
 
@@ -195,7 +306,7 @@ public class ConsoleView {
     private void traiterModificationConnexion() {
         Reseau reseau = controller.getReseau();
 
-        System.out.print("Veuillez saisir la connexion à modifier (ex: M1 G1): ");
+        System.out.print("Veuillez saisir la connexion a modifier (ex: M1 G1): ");
         String[] ancienne = scanner.nextLine().split(" ");
         if (ancienne.length != 2) {
             afficherErreur("Format incorrect");
@@ -212,12 +323,12 @@ public class ConsoleView {
             nomMaisonAncienne = nom2;
             nomGenAncien = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
         if (!reseau.connexionExiste(nomMaisonAncienne, nomGenAncien)) {
-            afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n'existe pas");
+            afficherErreur("La connexion '" + ancienne[0] + " " + ancienne[1] + "' n existe pas");
             return;
         }
 
@@ -240,7 +351,7 @@ public class ConsoleView {
             nomMaisonNouvelle = nom2;
             nomGenNouveau = nom1;
         } else {
-            afficherErreur("La maison ou le generateur specifie n'existe pas.");
+            afficherErreur("La maison ou le generateur specifie n existe pas.");
             return;
         }
 
@@ -252,10 +363,10 @@ public class ConsoleView {
         controller.modifierConnexion(nomMaisonNouvelle, nomGenNouveau);
 
         afficherMessage(
-                "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " à " + nomGenNouveau + ".");
+                "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " a " + nomGenNouveau + ".");
     }
 
-    // --- Methodes d'affichage ---7
+    // --- Méthodes d affichage ---
     // Affichage du menu principal
     public void afficherMenuPrincipal() {
         System.out.println("\n--- MENU DE CONFIGURATION ---");
@@ -267,9 +378,9 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
-    // Affichage du menu d'analyse
+    // Affichage du menu d analyse
     public void afficherMenuAnalyse() {
-        System.out.println("\n--- MENU D'ANALYSE ---");
+        System.out.println("\n--- MENU D ANALYSE ---");
         System.out.println("1) Calculer le cout du reseau electrique actuel");
         System.out.println("2) Modifier une connexion");
         System.out.println("3) Afficher le reseau");
@@ -277,13 +388,25 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
-    // --- Messages d'information ---
+    // Affichage du menu principal de la partie 2
+    public static void afficherMenuPrincipalPartie2() {
+        System.out.println("\n--- MENU PARTIE 2 ---");
+        System.out.println("1) Calculer le cout du reseau electrique actuel");
+        System.out.println("2) Resolution automatique");
+        System.out.println("3) Sauvegarder la solution actuelle");
+        System.out.println("4) Fin");
+        System.out.print("Votre choix : ");
+    }
+
+    // --- Messages d information ---
     public void afficherMessage(String message) {
         System.out.println("INFO: " + message);
     }
+
     public void afficherAvertissement(String message) {
         System.out.println("AVERTISSEMENT: " + message);
     }
+
     public void afficherErreur(String message) {
         System.out.println("ERREUR: " + message);
     }
@@ -305,17 +428,17 @@ public class ConsoleView {
         }
     }
 
-    // Affichage de l'etat actuel du reseau
+    // Affichage de l état actuel du reseau
     public void afficherReseau(Reseau reseau) {
         System.out.println("\n--- ETAT ACTUEL DU RESEAU ELECTRIQUE ---");
 
-        //Affichage des générateurs et de leurs connexions
+        // Affichage des generateurs et de leurs connexions
         if (reseau.getGenerateurs().isEmpty()) {
             System.out.println("Aucun generateur dans le reseau.");
         } else {
-            System.out.println("\n>> Genérateurs et connexions :");
+            System.out.println("\n>> Generateurs et connexions :");
 
-            // Recrée la map inversée (Générateur -> Liste de Maisons) manuellement
+            // Recree la map inversee (Generateur -> Liste de Maisons) manuellement
             Map<String, List<String>> maisonsParGenerateur = new HashMap<>();
             for (String nomGenerateur : reseau.getGenerateurs().keySet()) {
                 maisonsParGenerateur.put(nomGenerateur, new ArrayList<>());
@@ -325,7 +448,7 @@ public class ConsoleView {
                 String nomMaison = entry.getKey();
                 List<String> generateursConnectes = entry.getValue();
 
-                // Ajoute la maison à la liste de CHACUN de ses générateurs
+                // Ajoute la maison a la liste de CHACUN de ses generateurs
                 for (String nomGenerateur : generateursConnectes) {
                     if (maisonsParGenerateur.containsKey(nomGenerateur)) {
                         maisonsParGenerateur.get(nomGenerateur).add(nomMaison);
@@ -342,7 +465,8 @@ public class ConsoleView {
                     for (String nomMaison : maisonsConnectees) {
                         Maison maison = reseau.getMaisons().get(nomMaison);
                         if (maison != null) {
-                            System.out.printf("  -> Connecte à %s (%d kW)\n", maison.getNom(), maison.getConsommationKw());
+                            System.out.printf("  -> Connecte a %s (%d kW)\n", maison.getNom(),
+                                    maison.getConsommationKw());
                         }
                     }
                 }
@@ -361,9 +485,9 @@ public class ConsoleView {
                 if (gens == null || gens.isEmpty()) {
                     statut = "non connectee";
                 } else if (gens.size() == 1) {
-                    statut = "connectee à " + gens.get(0);
+                    statut = "connectee a " + gens.get(0);
                 } else {
-                    statut = "connectee à PLUSIEURS: " + String.join(", ", gens);
+                    statut = "connectee a PLUSIEURS: " + String.join(", ", gens);
                 }
 
                 System.out.printf("- %s (%s kW) - %s\n", maison.getNom(), maison.getConsommation().name(), statut);
