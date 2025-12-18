@@ -8,12 +8,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.Node;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import static Model.Constants.LAMBDA;
 
 /**
  * Interface graphique principale de l'application.
@@ -47,6 +49,9 @@ public class GraphicalView extends Application {
     private Label infoMaisons;
     private Label infoConnexions;
     private Label infoMenu;
+
+    // Reference vers le panneau d'actions de droite pour pouvoir le desactiver
+    private VBox actionsBox;
 
     // Point d'entree de l'application JavaFX. C'est la premiere methode appelee.
     // Elle prepare la fenetre, charge le CSS et initialise l'affichage.
@@ -83,14 +88,14 @@ public class GraphicalView extends Application {
 
         if (!args.isEmpty()) {
             String cheminFichier = args.get(0);
-            String lambdaStr = args.size() > 1 ? args.get(1) : "10";
+            String lambdaStr = args.size() > 1 ? args.get(1) : String.valueOf(LAMBDA);
+            ;
 
             javafx.application.Platform.runLater(() -> {
                 if (chargerReseauDepuisFichier(cheminFichier, lambdaStr)) {
                     menuActuel = 3;
                     mettreAJourMenuInfo();
 
-                    VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox");
                     if (actionsBox != null) {
                         mettreAJourActions(actionsBox);
                     }
@@ -160,15 +165,15 @@ public class GraphicalView extends Application {
         Separator sep1 = new Separator();
 
         // Section Actions
-        VBox actionsBox = new VBox(10);
+        actionsBox = new VBox(10);
         actionsBox.setId("actionsBox");
 
         mettreAJourActions(actionsBox);
 
         panneau.getChildren().addAll(
-                titre, new Separator(),
-                infoBox, sep1,
-                actionsBox);
+            titre, new Separator(),
+            infoBox, sep1,
+            actionsBox);
 
         return panneau;
     }
@@ -348,11 +353,13 @@ public class GraphicalView extends Application {
                 statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
             } else {
                 statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
+                setActionsDisabled(true);
                 graphPane.attendreClicPourPosition(pos -> {
                     controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
                     graphPane.setPositionGenerateur(gen.getNom(), pos);
                     rafraichirGraphe();
                     rafraichirInfos();
+                    setActionsDisabled(false);
                     statusLabel.setText("INFO: Generateur " + gen.getNom() + " ajoute.");
                 }, true);
             }
@@ -420,11 +427,13 @@ public class GraphicalView extends Application {
                     statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
                 } else {
                     statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
+                    setActionsDisabled(true);
                     graphPane.attendreClicPourPosition(pos -> {
                         controller.addMaison(maison.getNom(), maison.getConsommation().name());
                         graphPane.setPositionMaison(maison.getNom(), pos);
                         rafraichirGraphe();
                         rafraichirInfos();
+                        setActionsDisabled(false);
                         statusLabel.setText("INFO: Maison " + maison.getNom() + " ajoutee.");
                     }, false);
                 }
@@ -634,7 +643,6 @@ public class GraphicalView extends Application {
             mettreAJourMenuInfo();
 
             // Correction egalement ici pour ne pas supprimer les infos
-            VBox actionsBox = (VBox) primaryStage.getScene().getRoot().lookup("#actionsBox");
             if (actionsBox != null) {
                 mettreAJourActions(actionsBox);
             }
@@ -1042,6 +1050,17 @@ public class GraphicalView extends Application {
     }
 
     // UTILITAIRES -----------------------------------------------------------
+
+    // Active ou desactive tous les boutons du panneau d'actions
+    private void setActionsDisabled(boolean disabled) {
+        if (actionsBox == null)
+            return;
+        for (Node node : actionsBox.getChildren()) {
+            if (node instanceof Button) {
+                node.setDisable(disabled);
+            }
+        }
+    }
 
     // Cree la barre du bas avec le statut et le cout
     private HBox creerBarreStatut() {
