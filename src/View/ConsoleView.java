@@ -115,7 +115,10 @@ public class ConsoleView {
                     if (problemes.isEmpty()) {
                         afficherMessage("Configuration terminee et validee");
                         configurationTerminee = true;
-                        gererMenuAnalyse();
+                        // Bascule directement vers le menu de resolution (meme menu que le mode
+                        // fichier)
+                        afficherReseauEtCout(controller);
+                        gererMenuResolution(controller);
                     } else {
                         afficherProblemesConfiguration(problemes);
                     }
@@ -157,6 +160,9 @@ public class ConsoleView {
     private void gererMenuResolution(AppController controller) {
         try (Scanner scanner = new Scanner(System.in)) {
             boolean running = true;
+
+            // Affiche l'etat et le cout courant avant toute action
+            afficherReseauEtCout(controller);
 
             while (running) {
                 afficherMenuPrincipalPartie2();

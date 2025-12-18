@@ -171,9 +171,9 @@ public class GraphicalView extends Application {
         mettreAJourActions(actionsBox);
 
         panneau.getChildren().addAll(
-            titre, new Separator(),
-            infoBox, sep1,
-            actionsBox);
+                titre, new Separator(),
+                infoBox, sep1,
+                actionsBox);
 
         return panneau;
     }
@@ -189,7 +189,8 @@ public class GraphicalView extends Application {
                 infoMenu.setText("MENU 2 - Analyse du Reseau");
                 break;
             case 3:
-                infoMenu.setText("MENU 3 - Reseau charge depuis fichier");
+                // infoMenu.setText("MENU 3 - Reseau charge ou valide");
+                infoMenu.setText("MENU 3 - Menu d'Optimisation et de Sauvegarde");
                 break;
         }
     }
@@ -639,15 +640,17 @@ public class GraphicalView extends Application {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            menuActuel = 2;
+            // Bascule directement vers le menu 3 (meme interface que le chargement fichier)
+            menuActuel = 3;
             mettreAJourMenuInfo();
 
             // Correction egalement ici pour ne pas supprimer les infos
             if (actionsBox != null) {
                 mettreAJourActions(actionsBox);
             }
+
             calculerCout();
-            statusLabel.setText("Configuration validee. Menu 2 actif.");
+            statusLabel.setText("Configuration validee. Menu 3 actif.");
         }
     }
 
