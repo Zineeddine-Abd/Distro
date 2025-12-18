@@ -60,7 +60,8 @@ public class ConsoleView {
                 }
             } else {
                 System.out.println(
-                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) (" + LAMBDA + ").");
+                        "INFO : Pas de penalite specifiee, utilisation de la valeur par defaut (lu depuis le fichier des constantes Model/Constants.java) ("
+                                + LAMBDA + ").");
             }
 
             try {
@@ -72,6 +73,10 @@ public class ConsoleView {
                 AppController controller = new AppController(reseau);
 
                 System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
+
+                // Afficher immediatement l'etat charge et son cout avant toute action
+                // utilisateur
+                afficherReseauEtCout(controller);
 
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
@@ -159,11 +164,12 @@ public class ConsoleView {
                 String input = scanner.nextLine();
 
                 switch (input) {
+                    // case "1":
+                    // double[] couts_avant = controller.calculerCoutReseau();
+                    // afficherCout(couts_avant[0], couts_avant[1], couts_avant[2]);
+                    // break;
+                    // case "2":
                     case "1":
-                        double[] couts_avant = controller.calculerCoutReseau();
-                        afficherCout(couts_avant[0], couts_avant[1], couts_avant[2]);
-                        break;
-                    case "2":
                         long avant = System.currentTimeMillis();
 
                         // Creation du solveur avec le reseau actuel
@@ -173,6 +179,7 @@ public class ConsoleView {
                         solver.solve();
 
                         // Affichage du resultat
+                        afficherReseau(controller.getReseau());
                         double[] couts_apres = controller.calculerCoutReseau();
 
                         System.out.println("Optimisation terminee.");
@@ -181,7 +188,7 @@ public class ConsoleView {
                         long apres = System.currentTimeMillis();
                         System.out.println("Temps ecoule (ms) : " + (apres - avant));
                         break;
-                    case "3":
+                    case "2":
                         System.out.print("Entrez le nom du fichier de sauvegarde : ");
                         String savePath = scanner.nextLine();
                         try {
@@ -191,7 +198,7 @@ public class ConsoleView {
                             System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
                         }
                         break;
-                    case "4":
+                    case "3":
                         running = false;
                         System.out.println("Programme terminee");
                         break;
@@ -391,10 +398,10 @@ public class ConsoleView {
     // Affichage du menu principal de la partie 2
     public static void afficherMenuPrincipalPartie2() {
         System.out.println("\n--- MENU PARTIE 2 ---");
-        System.out.println("1) Calculer le cout du reseau electrique actuel");
-        System.out.println("2) Resolution automatique");
-        System.out.println("3) Sauvegarder la solution actuelle");
-        System.out.println("4) Fin");
+        // System.out.println("1) Calculer le cout du reseau electrique actuel");
+        System.out.println("1) Resolution automatique");
+        System.out.println("2) Sauvegarder la solution actuelle");
+        System.out.println("3) Fin");
         System.out.print("Votre choix : ");
     }
 
@@ -417,6 +424,13 @@ public class ConsoleView {
         System.out.printf("Dispersion (Disp(S))     : %.4f\n", dispersion);
         System.out.printf("Surcharge (Surcharge(S)) : %.4f\n", surcharge);
         System.out.printf("Cout total (Cout(S))     : %.4f\n", coutTotal);
+    }
+
+    // Affiche a la fois le reseau et son cout courant
+    private void afficherReseauEtCout(AppController controller) {
+        afficherReseau(controller.getReseau());
+        double[] couts = controller.calculerCoutReseau();
+        afficherCout(couts[0], couts[1], couts[2]);
     }
 
     // Affichage des problemes de configuration
