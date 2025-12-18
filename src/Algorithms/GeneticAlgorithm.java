@@ -38,6 +38,9 @@ public class GeneticAlgorithm {
     // C'est le point de depart. Cette methode calcule combien de temps l'algorithme doit tourner,
     // lance plusieurs recherches en parallele sur le processeur, et applique la meilleure solution trouvee a la fin.
     public void solve() {
+        if (nomsGenerateurs.isEmpty() || nomsMaisons.isEmpty()) {
+            throw new IllegalStateException("Le reseau doit contenir au moins un generateur et une maison avant l'optimisation.");
+        }
         // 1- Calcul Dynamique des Paramètres
         int nbMaisons = nomsMaisons.size();
 

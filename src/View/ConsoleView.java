@@ -225,7 +225,17 @@ public class ConsoleView {
             return;
         }
         String nom = entrees[0];
-        int capacite = Integer.parseInt(entrees[1]);
+        int capacite;
+        try {
+            capacite = Integer.parseInt(entrees[1]);
+            if (capacite <= 0) {
+                afficherErreur("La capacite doit etre un entier strictement positif.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            afficherErreur("La capacite doit etre un entier valide.");
+            return;
+        }
 
         boolean existed = controller.addGenerateur(nom, capacite);
         if (existed) {

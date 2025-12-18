@@ -37,6 +37,9 @@ public class AppController {
     // Ajoute ou met a jour un generateur dans le reseau
     // Retourne true si l'element existait deja (mis a jour), false sinon (ajout)
     public boolean addGenerateur(String nom, int capacite) {
+        if (capacite <= 0) {
+            throw new IllegalArgumentException("La capacite d'un generateur doit etre un entier positif.");
+        }
         boolean existed = reseau.generateurExiste(nom);
         reseau.addOrUpdateGenerateur(new Generateur(nom, capacite));
         return existed;

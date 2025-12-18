@@ -57,11 +57,16 @@ public class Reseau {
 
     // Ajoute ou met a jour un generateur dans le reseau
     public void addOrUpdateGenerateur(Generateur generateur) {
+        if (generateur.getCapaciteMax() <= 0) {
+            throw new IllegalArgumentException("La capacite d'un generateur doit etre un entier positif.");
+        }
         generateurs.put(generateur.getNom(), generateur);
     }
 
-    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est ajoutée à la liste.
+    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est
+    // ajoutée à la liste.
     public void creerConnexion(String nomMaison, String nomGenerateur) {
+        verifierExistenceElements(nomMaison, nomGenerateur);
         // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si
         // elle n'existe pas.
         // .add() : Ajoute le générateur à cette liste.
@@ -70,6 +75,7 @@ public class Reseau {
 
     // Supprime une connexion spécifique.
     public void supprimerConnexion(String nomMaison, String nomGenerateur) {
+        verifierExistenceElements(nomMaison, nomGenerateur);
         List<String> gens = connexions.get(nomMaison);
         if (gens != null) {
             gens.remove(nomGenerateur); // Supprime uniquement ce generateur de la liste
@@ -79,11 +85,22 @@ public class Reseau {
         }
     }
 
-    // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
+    // Remplace toutes les connexions d'une maison par une nouvelle connexion
+    // unique, Utilise pour la modification
     public void setConnexionUnique(String nomMaison, String nomGenerateur) {
+        verifierExistenceElements(nomMaison, nomGenerateur);
         List<String> nouvelleListe = new ArrayList<>();
         nouvelleListe.add(nomGenerateur);
         connexions.put(nomMaison, nouvelleListe); // pour craser la liste précédente
+    }
+
+    private void verifierExistenceElements(String nomMaison, String nomGenerateur) {
+        if (!maisonExiste(nomMaison)) {
+            throw new IllegalArgumentException("Maison inconnue: " + nomMaison);
+        }
+        if (!generateurExiste(nomGenerateur)) {
+            throw new IllegalArgumentException("Generateur inconnu: " + nomGenerateur);
+        }
     }
 
     // Verifie si une connexion specifique existe.
@@ -170,7 +187,8 @@ public class Reseau {
      * valide.
      */
 
-    // Calcule le cout total du reseau en fonction de la dispersion et de la surcharge.
+    // Calcule le cout total du reseau en fonction de la dispersion et de la
+    // surcharge.
     // Retourne un tableau de double : [coutTotal, dispersion, surcharge]
     public double[] calculerCout() {
         if (generateurs.isEmpty())
@@ -188,7 +206,8 @@ public class Reseau {
         return new double[] { coutTotal, dispersion, surcharge };
     }
 
-    // Calcule la charge totale pour chaque générateur (la somme des capacite des masions connectés).
+    // Calcule la charge totale pour chaque générateur (la somme des capacite des
+    // masions connectés).
     private Map<String, Integer> calculerCharges() {
         Map<String, Integer> charges = new HashMap<>();
         generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges a 0
