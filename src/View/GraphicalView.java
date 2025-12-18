@@ -17,7 +17,8 @@ import java.util.Optional;
 
 /**
  * Interface graphique principale de l'application.
- * C'est ici que l'on construit la fenetre, les menus et que l'on gere les interactions
+ * C'est ici que l'on construit la fenetre, les menus et que l'on gere les
+ * interactions
  * de l'utilisateur (clics sur les boutons, boites de dialogue, etc.).
  */
 public class GraphicalView extends Application {
@@ -93,6 +94,7 @@ public class GraphicalView extends Application {
                     if (actionsBox != null) {
                         mettreAJourActions(actionsBox);
                     }
+                    rafraichirCoutLabel();
                 } else {
                     menuActuel = 1;
                     mettreAJourMenuInfo();
@@ -166,13 +168,13 @@ public class GraphicalView extends Application {
         panneau.getChildren().addAll(
                 titre, new Separator(),
                 infoBox, sep1,
-                actionsBox
-        );
+                actionsBox);
 
         return panneau;
     }
 
-    // Met a jour le texte en haut pour dire a l'utilisateur dans quel menu il se trouve
+    // Met a jour le texte en haut pour dire a l'utilisateur dans quel menu il se
+    // trouve
     private void mettreAJourMenuInfo() {
         switch (menuActuel) {
             case 1:
@@ -187,7 +189,8 @@ public class GraphicalView extends Application {
         }
     }
 
-    // Change les boutons disponibles a droite selon l'etape en cours (Menu 1, 2 ou 3)
+    // Change les boutons disponibles a droite selon l'etape en cours (Menu 1, 2 ou
+    // 3)
     private void mettreAJourActions(VBox actionsBox) {
         actionsBox.getChildren().clear();
 
@@ -250,7 +253,7 @@ public class GraphicalView extends Application {
 
         } else if (menuActuel == 3) {
             // MENU 3 : Fichier charge
-            Button btn0 = creerBoutonStyleControle("0) Calculer le Cout Actuel");
+            Button btn0 = creerBoutonStyleControle("Afficher le Cout Actuel en Détail");
             btn0.setOnAction(e -> calculerCout());
 
             Button btn1 = creerBoutonStyleControle("1) Resolution Automatique");
@@ -338,7 +341,8 @@ public class GraphicalView extends Application {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Modification Generateur");
                 alert.setHeaderText("Generateur existant");
-                alert.setContentText("Le generateur '" + gen.getNom() + "' existe deja.\n" + "Sa capacite a ete mise a jour a " + gen.getCapaciteMax() + " kW.");
+                alert.setContentText("Le generateur '" + gen.getNom() + "' existe deja.\n"
+                        + "Sa capacite a ete mise a jour a " + gen.getCapaciteMax() + " kW.");
                 alert.showAndWait();
 
                 statusLabel.setText("AVERTISSEMENT: Le generateur " + gen.getNom() + " a ete mis a jour.");
@@ -409,7 +413,8 @@ public class GraphicalView extends Application {
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Modification Maison");
                     alert.setHeaderText("Maison existante");
-                    alert.setContentText("La maison '" + maison.getNom() + "' existe deja.\n" + "Sa consommation a ete mise a jour (" + maison.getConsommation().name() + ").");
+                    alert.setContentText("La maison '" + maison.getNom() + "' existe deja.\n"
+                            + "Sa consommation a ete mise a jour (" + maison.getConsommation().name() + ").");
                     alert.showAndWait();
 
                     statusLabel.setText("AVERTISSEMENT: La maison " + maison.getNom() + " a ete mise a jour.");
@@ -473,7 +478,7 @@ public class GraphicalView extends Application {
                     afficherErreur("Erreur", "Veuillez selectionner une maison ET un generateur.");
                     return null;
                 }
-                return new String[]{maisonCombo.getValue(), genCombo.getValue()};
+                return new String[] { maisonCombo.getValue(), genCombo.getValue() };
             }
             return null;
         });
@@ -501,8 +506,7 @@ public class GraphicalView extends Application {
                                 "RAPPEL: Une maison doit etre connectee a UN SEUL generateur.\n\n" +
                                 "Vous pouvez continuer a ajouter cette connexion, mais elle sera\n" +
                                 "consideree comme INVALIDE lors de la validation (option 5).\n\n" +
-                                "Voulez-vous quand meme ajouter cette connexion ?"
-                );
+                                "Voulez-vous quand meme ajouter cette connexion ?");
                 warning.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
 
                 Optional<ButtonType> choice = warning.showAndWait();
@@ -578,7 +582,7 @@ public class GraphicalView extends Application {
                     afficherErreur("Erreur", "Veuillez selectionner une connexion complete.");
                     return null;
                 }
-                return new String[]{maisonCombo.getValue(), genCombo.getValue()};
+                return new String[] { maisonCombo.getValue(), genCombo.getValue() };
             }
             return null;
         });
@@ -601,7 +605,8 @@ public class GraphicalView extends Application {
         });
     }
 
-    // Verifie si le reseau est valide (pas d'erreurs) avant de passer a l'etape d'analyse
+    // Verifie si le reseau est valide (pas d'erreurs) avant de passer a l'etape
+    // d'analyse
     private void finMenu1() {
         List<String> problemes = controller.validerConfigurationReseau();
 
@@ -633,6 +638,7 @@ public class GraphicalView extends Application {
             if (actionsBox != null) {
                 mettreAJourActions(actionsBox);
             }
+            calculerCout();
             statusLabel.setText("Configuration validee. Menu 2 actif.");
         }
     }
@@ -664,14 +670,25 @@ public class GraphicalView extends Application {
                         "Surcharge (Surcharge(S)): %.4f\n" +
                         "Cout total (Cout(S)):     %.4f\n\n" +
                         "Parametre lambda: %d",
-                couts[1], couts[2], couts[0], controller.getReseau().getLambda()
-        );
+                couts[1], couts[2], couts[0], controller.getReseau().getLambda());
 
         alert.setContentText(contenu);
         alert.showAndWait();
 
         coutLabel.setText(String.format("Cout: %.4f", couts[0]));
         statusLabel.setText("Cout calcule avec succes.");
+    }
+
+    // Met a jour l'etiquette de cout sans ouvrir de pop-up
+    private void rafraichirCoutLabel() {
+        List<String> problemes = controller.validerConfigurationReseau();
+        if (!problemes.isEmpty()) {
+            coutLabel.setText("Cout: Configuration invalide!");
+            return;
+        }
+
+        double[] couts = controller.calculerCoutReseau();
+        coutLabel.setText(String.format("Cout: %.4f", couts[0]));
     }
 
     // Permet de changer le generateur d'une maison en deux etapes
@@ -727,7 +744,7 @@ public class GraphicalView extends Application {
                     afficherErreur("Erreur", "Veuillez selectionner une connexion complete.");
                     return null;
                 }
-                return new String[]{maisonCombo1.getValue(), genCombo1.getValue()};
+                return new String[] { maisonCombo1.getValue(), genCombo1.getValue() };
             }
             return null;
         });
@@ -879,7 +896,8 @@ public class GraphicalView extends Application {
         statusLabel.setText("Affichage du reseau termine.");
     }
 
-    // MENU 3 : FICHIER CHARGE -------------------------------------------------------------
+    // MENU 3 : FICHIER CHARGE
+    // -------------------------------------------------------------
 
     // Tente de lire un fichier texte pour construire le reseau automatiquement
     private boolean chargerReseauDepuisFichier(String chemin, String lambdaStr) {
@@ -970,8 +988,7 @@ public class GraphicalView extends Application {
                                     "Amelioration: %.2f%%\n" +
                                     "Temps d'execution: %d ms\n\n" +
                                     "Les connexions ont ete modifiees pour minimiser le cout.",
-                            avant[0], apres[0], amelioration, duree
-                    ));
+                            avant[0], apres[0], amelioration, duree));
                     resultDialog.showAndWait();
 
                     statusLabel.setText("Optimisation terminee avec succes.");
@@ -980,7 +997,8 @@ public class GraphicalView extends Application {
         }
     }
 
-    // Ecrit la configuration actuelle dans un fichier texte choisi par l'utilisateur
+    // Ecrit la configuration actuelle dans un fichier texte choisi par
+    // l'utilisateur
     private void sauvegarderSolution() {
         List<String> problemes = controller.validerConfigurationReseau();
         if (!problemes.isEmpty()) {
@@ -1000,8 +1018,7 @@ public class GraphicalView extends Application {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Menu 3 - Option 2 : Sauvegarder la Solution");
         fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Fichiers texte", "*.txt")
-        );
+                new FileChooser.ExtensionFilter("Fichiers texte", "*.txt"));
         fileChooser.setInitialFileName("solution.txt");
 
         File fichier = fileChooser.showSaveDialog(primaryStage);
@@ -1058,7 +1075,8 @@ public class GraphicalView extends Application {
         return btn;
     }
 
-    // Demande confirmation avant de fermer l'application (peut etre on ajoute un auto-save ici (hors de projet))
+    // Demande confirmation avant de fermer l'application (peut etre on ajoute un
+    // auto-save ici (hors de projet))
     private void confirmerQuitter() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Quitter");
