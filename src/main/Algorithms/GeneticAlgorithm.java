@@ -25,15 +25,21 @@ public class GeneticAlgorithm {
     // Liste simple des noms des generateurs pour les tirages aleatoires
     private final List<String> nomsGenerateurs;
 
-    // Generateur de nombres aleatoires
+    // Generateur de nombres aleatoires (injectable pour les tests)
     private final Random random;
 
     // Prepare l'algorithme en recuperant les listes de maisons et de generateurs
     public GeneticAlgorithm(Reseau reseau) {
+        this(reseau, new Random());
+    }
+
+    // Surcharge pour injecter un Random deterministe (utilise dans les tests pour
+    // eviter le flakiness)
+    public GeneticAlgorithm(Reseau reseau, Random random) {
         this.reseauOriginal = reseau;
         this.nomsMaisons = new ArrayList<>(reseau.getMaisons().keySet());
         this.nomsGenerateurs = new ArrayList<>(reseau.getGenerateurs().keySet());
-        this.random = new Random();
+        this.random = (random == null) ? new Random() : random;
     }
 
     // C'est le point de depart. Cette methode calcule combien de temps l'algorithme
@@ -68,13 +74,18 @@ public class GeneticAlgorithm {
 
         // 3- Lancement de l'algo en paralléle
         // On lance une simulation independante sur chaque coeur du processeur
+        long baseSeed = random.nextLong();
+
         for (int i = 0; i < nbThreads; i++) {
             // Important : on clone le reseau pour que chaque thread travaille sur sa propre
             // copie sans gener les autres
             Reseau reseauClone = clonerReseau(this.reseauOriginal);
 
+            // Utilise un Random derive pour garantir la reproductibilite par thread
+            Random threadRandom = new Random(baseSeed + i);
+
             Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations,
-                    dynamicMutation);
+                    dynamicMutation, threadRandom);
             futures.add(executor.submit(task));
         }
 
@@ -110,9 +121,7 @@ public class GeneticAlgorithm {
     // Il cree une population de solutions, les fait se reproduire et muter pour
     // trouver la meilleure configuration.
     private ResultatEvolution executerEvolution(Reseau reseauLocal, int populationSize, int generations,
-            double mutationRate) {
-        Random threadRandom = new Random();
-
+            double mutationRate, Random threadRandom) {
         // Creation de la premiere generation completement au hasard
         List<Map<String, String>> population = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {

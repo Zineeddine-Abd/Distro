@@ -14,12 +14,12 @@ import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.List;
 
-import main.Exceptions.FileSyntaxException;
-import main.Exceptions.ReseauInvalideException;
 import main.Model.Consommation;
 import main.Model.Generateur;
 import main.Model.Maison;
 import main.Model.Reseau;
+import main.Exceptions.FileSyntaxException;
+import main.Exceptions.ReseauInvalideException;
 
 // Cette classe regroupe toutes les fonctions liees a la gestion des fichiers (lecture et ecriture).
 // Elle permet de charger un reseau depuis un fichier texte et de sauvegarder un reseau existant.

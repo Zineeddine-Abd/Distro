@@ -1,3 +1,4 @@
+src/test/View/*
 ### IntelliJ IDEA ###
 out/
 !**/src/main/**/out/
@@ -31,3 +32,4 @@ bin/
 .DS_Store
 
 *.class
+# src/test/View/ConsoleViewParsingTest.java

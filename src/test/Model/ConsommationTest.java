@@ -1,4 +1,4 @@
-package test.java.Model;
+package test.Model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

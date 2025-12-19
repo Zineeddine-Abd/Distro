@@ -9,9 +9,9 @@ import javafx.scene.Node;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import main.Algorithms.GeneticAlgorithm;
 import main.Controller.AppController;
 import main.Model.*;
+import main.Algorithms.GeneticAlgorithm;
 
 import static main.Model.Constants.*;
 

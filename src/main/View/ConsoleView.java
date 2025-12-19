@@ -1,11 +1,11 @@
 package main.View;
 
-import main.Algorithms.FileAlgorithms;
-import main.Algorithms.GeneticAlgorithm;
 import main.Controller.AppController;
 import main.Model.Generateur;
 import main.Model.Maison;
 import main.Model.Reseau;
+import main.Algorithms.FileAlgorithms;
+import main.Algorithms.GeneticAlgorithm;
 
 import static main.Model.Constants.*;
 
@@ -388,6 +388,32 @@ public class ConsoleView {
         afficherMessage(
                 "Connexion pour " + nomMaisonNouvelle + " modifiee de " + nomGenAncien + " a " + nomGenNouveau + ".");
     }
+
+    // // --- Helpers testables (parsing) ---
+    // public static int parsePositiveInt(String value) {
+    // int parsed = Integer.parseInt(value.trim());
+    // if (parsed <= 0) {
+    // throw new IllegalArgumentException("La valeur doit etre un entier strictement
+    // positif.");
+    // }
+    // return parsed;
+    // }
+
+    // public static int parseLambda(String value) {
+    // return parsePositiveInt(value);
+    // }
+
+    // public static Consommation parseConsommationToken(String token) {
+    // return Consommation.fromString(token);
+    // }
+
+    // public static int parseMenuChoice(String input, int maxOption) {
+    // int choice = Integer.parseInt(input.trim());
+    // if (choice < 1 || choice > maxOption) {
+    // throw new IllegalArgumentException("Choix invalide.");
+    // }
+    // return choice;
+    // }
 
     // --- Méthodes d affichage ---
     // Affichage du menu principal
