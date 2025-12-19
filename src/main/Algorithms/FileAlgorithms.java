@@ -1,4 +1,4 @@
-package Algorithms;
+package main.Algorithms;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,37 +11,39 @@ import java.io.File;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import Exceptions.FileSyntaxException;
-import Exceptions.ReseauInvalideException;
-
 import java.util.HashMap;
 import java.util.List;
 
-import Model.Reseau;
-import Model.Consommation;
-import Model.Generateur;
-import Model.Maison;
+import main.Exceptions.FileSyntaxException;
+import main.Exceptions.ReseauInvalideException;
+import main.Model.Consommation;
+import main.Model.Generateur;
+import main.Model.Maison;
+import main.Model.Reseau;
 
 // Cette classe regroupe toutes les fonctions liees a la gestion des fichiers (lecture et ecriture).
 // Elle permet de charger un reseau depuis un fichier texte et de sauvegarder un reseau existant.
 public class FileAlgorithms {
 
-    // Une expression reguliere (regex) pour verifier que chaque ligne respecte le format : mot(mot,mot).
+    // Une expression reguliere (regex) pour verifier que chaque ligne respecte le
+    // format : mot(mot,mot).
     // Exemple valide : maison(M1,10).
     private static String regex = "^([a-z]+)\\(([a-zA-Z0-9]+),([a-zA-Z0-9]+)\\)\\.$";
 
-    // Le modele pre-compile de la regex pour l'utiliser plus rapidement sur chaque ligne
+    // Le modele pre-compile de la regex pour l'utiliser plus rapidement sur chaque
+    // ligne
     private static final Pattern LINE_PATTERN = Pattern
             .compile(regex);
 
-    // Variables temporaires pour verifier si la demande totale depasse la capacite totale
+    // Variables temporaires pour verifier si la demande totale depasse la capacite
+    // totale
     // pendant la lecture du fichier
     private static int sommeCapacitesGenerateurs = 0;
     private static int sommeBesoinsMaisons = 0;
 
     // Lit un fichier texte ligne par ligne pour construire le reseau.
-    // Verifie la syntaxe, l'ordre des definitions et les contraintes logiques au fur et a mesure.
+    // Verifie la syntaxe, l'ordre des definitions et les contraintes logiques au
+    // fur et a mesure.
     public static Reseau chargerReseau(String cheminFichier)
             throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException {
         File fichier = new File(cheminFichier);
@@ -73,14 +75,16 @@ public class FileAlgorithms {
                 Matcher matcher = LINE_PATTERN.matcher(ligne);
 
                 if (!matcher.matches()) {
-                    // Si la ligne ne ressemble pas a "type(arg1,arg2).", on arrete tout avec une erreur precise
+                    // Si la ligne ne ressemble pas a "type(arg1,arg2).", on arrete tout avec une
+                    // erreur precise
                     throw new FileSyntaxException(
                             "Format incorrect ou parenthese/point manquant",
                             numeroLigne,
                             ligne);
                 }
 
-                // On recupere les 3 morceaux de la ligne : le type (ex: generateur) et les deux arguments
+                // On recupere les 3 morceaux de la ligne : le type (ex: generateur) et les deux
+                // arguments
                 String type = matcher.group(1);
                 String arg1 = matcher.group(2);
                 String arg2 = matcher.group(3);
@@ -112,7 +116,8 @@ public class FileAlgorithms {
                         // Verifie qu'on est bien apres les generateurs et avant les connexions
                         if (sectionEncours > 2)
                             throw new FileSyntaxException(
-                                    "Les maisons doivent etre definies apres les generateurs et avant les connexions.", numeroLigne,
+                                    "Les maisons doivent etre definies apres les generateurs et avant les connexions.",
+                                    numeroLigne,
                                     ligne);
                         sectionEncours = 2;
 
@@ -128,7 +133,8 @@ public class FileAlgorithms {
                             // Verification immediate : est-ce que la demande depasse deja l'offre ?
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
                                 throw new FileSyntaxException(
-                                        "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' (" + conso.getValeurKw() + "kW) " +
+                                        "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' ("
+                                                + conso.getValeurKw() + "kW) " +
                                                 "porte la demande totale a " + sommeBesoinsMaisons
                                                 + "kW, ce qui depasse la capacite totale des generateurs (" +
                                                 sommeCapacitesGenerateurs + "kW).",
@@ -137,7 +143,8 @@ public class FileAlgorithms {
                             }
 
                         } catch (IllegalArgumentException e) {
-                            throw new FileSyntaxException("Type de consommation invalide/inattendu (Attendu: BASSE, NORMAL, FORTE)",
+                            throw new FileSyntaxException(
+                                    "Type de consommation invalide/inattendu (Attendu: BASSE, NORMAL, FORTE)",
                                     numeroLigne, ligne);
                         }
 
@@ -146,10 +153,12 @@ public class FileAlgorithms {
                         // Verifie qu'on a fini de definir toutes les maisons et generateurs
                         if (sectionEncours < 2)
                             throw new FileSyntaxException(
-                                    "Les connexions doivent etre definies apres les generateurs et les maisons.", numeroLigne, ligne);
+                                    "Les connexions doivent etre definies apres les generateurs et les maisons.",
+                                    numeroLigne, ligne);
                         sectionEncours = 3;
 
-                        // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements existants)
+                        // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements
+                        // existants)
                         parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
                         break;
                     default:
@@ -171,14 +180,17 @@ public class FileAlgorithms {
         return reseau;
     }
 
-    // Analyse une ligne de connexion. Identifie qui est la maison et qui est le generateur,
-    // puis verifie qu'on n'essaie pas de connecter une maison qui a deja un generateur.
+    // Analyse une ligne de connexion. Identifie qui est la maison et qui est le
+    // generateur,
+    // puis verifie qu'on n'essaie pas de connecter une maison qui a deja un
+    // generateur.
     private static void parseEtValiderConnexion(Reseau reseau, String arg1, String arg2, int line, String content)
             throws FileSyntaxException {
         String nomMaison = null;
         String nomGen = null;
 
-        // On essaie de deviner qui est qui, car le format autorise connexion(M,G) ou connexion(G,M)
+        // On essaie de deviner qui est qui, car le format autorise connexion(M,G) ou
+        // connexion(G,M)
         if (reseau.maisonExiste(arg1) && reseau.generateurExiste(arg2)) {
             nomMaison = arg1;
             nomGen = arg2;
@@ -188,7 +200,8 @@ public class FileAlgorithms {
         } else {
             // Si l'un des noms n'existe pas, on arrete tout
             throw new FileSyntaxException(
-                    "Connexion impossible : l'un des elements (" + arg1 + ", " + arg2 + ") n'a pas ete defini plus haut.",
+                    "Connexion impossible : l'un des elements (" + arg1 + ", " + arg2
+                            + ") n'a pas ete defini plus haut.",
                     line, content);
         }
 
@@ -198,7 +211,8 @@ public class FileAlgorithms {
             String dejaConnecteA = gensConnectes.get(0);
 
             throw new FileSyntaxException(
-                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA + "'. "
+                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA
+                            + "'. "
                             + "Impossible de la connecter aussi a '" + nomGen + "'.",
                     line, content);
         }
@@ -207,7 +221,8 @@ public class FileAlgorithms {
     }
 
     // Effectue les dernieres validations sur le reseau complet.
-    // Si des problemes subsistent (ex: maison sans electricite), on lance une exception avec la liste des erreurs.
+    // Si des problemes subsistent (ex: maison sans electricite), on lance une
+    // exception avec la liste des erreurs.
     private static void validerCompletude(Reseau reseau) throws ReseauInvalideException {
 
         List<String> problemes = reseau.validerConfiguration();
@@ -217,7 +232,8 @@ public class FileAlgorithms {
 
     }
 
-    // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format demande.
+    // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format
+    // demande.
     public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(cheminFichier))) {
 

@@ -1,11 +1,11 @@
-package Algorithms;
-
-import Model.Generateur;
-import Model.Maison;
-import Model.Reseau;
+package main.Algorithms;
 
 import java.util.*;
 import java.util.concurrent.*;
+
+import main.Model.Generateur;
+import main.Model.Maison;
+import main.Model.Reseau;
 
 // Cette classe est le cerveau de l'optimisation.
 // Elle inspire de l'algorithme genetique (inspire de l'evolution naturelle) pour trouver
@@ -18,7 +18,8 @@ public class GeneticAlgorithm {
     // Le reseau sur lequel on travaille (celui qu'on veut optimiser)
     private final Reseau reseauOriginal;
 
-    // Liste simple des noms des maisons pour pouvoir en choisir une au hasard facilement
+    // Liste simple des noms des maisons pour pouvoir en choisir une au hasard
+    // facilement
     private final List<String> nomsMaisons;
 
     // Liste simple des noms des generateurs pour les tirages aleatoires
@@ -35,16 +36,20 @@ public class GeneticAlgorithm {
         this.random = new Random();
     }
 
-    // C'est le point de depart. Cette methode calcule combien de temps l'algorithme doit tourner,
-    // lance plusieurs recherches en parallele sur le processeur, et applique la meilleure solution trouvee a la fin.
+    // C'est le point de depart. Cette methode calcule combien de temps l'algorithme
+    // doit tourner,
+    // lance plusieurs recherches en parallele sur le processeur, et applique la
+    // meilleure solution trouvee a la fin.
     public void solve() {
         if (nomsGenerateurs.isEmpty() || nomsMaisons.isEmpty()) {
-            throw new IllegalStateException("Le reseau doit contenir au moins un generateur et une maison avant l'optimisation.");
+            throw new IllegalStateException(
+                    "Le reseau doit contenir au moins un generateur et une maison avant l'optimisation.");
         }
         // 1- Calcul Dynamique des Paramètres
         int nbMaisons = nomsMaisons.size();
 
-        // On adapte la taille de la population selon la taille du reseau (minimum 50 solutions testees a la fois)
+        // On adapte la taille de la population selon la taille du reseau (minimum 50
+        // solutions testees a la fois)
         int dynamicPopSize = Math.max(20, nbMaisons * 5);
 
         // On decide combien de fois on va ameliorer la solution (minimum 1000 cycles)
@@ -64,10 +69,12 @@ public class GeneticAlgorithm {
         // 3- Lancement de l'algo en paralléle
         // On lance une simulation independante sur chaque coeur du processeur
         for (int i = 0; i < nbThreads; i++) {
-            // Important : on clone le reseau pour que chaque thread travaille sur sa propre copie sans gener les autres
+            // Important : on clone le reseau pour que chaque thread travaille sur sa propre
+            // copie sans gener les autres
             Reseau reseauClone = clonerReseau(this.reseauOriginal);
 
-            Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations, dynamicMutation);
+            Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations,
+                    dynamicMutation);
             futures.add(executor.submit(task));
         }
 
@@ -92,15 +99,18 @@ public class GeneticAlgorithm {
         }
 
         // 5- Application finale sur le vrai reseau
-        // On applique la solution gagnante au vrai reseau pour que l'utilisateur voie le resultat
+        // On applique la solution gagnante au vrai reseau pour que l'utilisateur voie
+        // le resultat
         if (meilleureSolutionGlobale != null) {
             appliquerSolutionAuReseau(this.reseauOriginal, meilleureSolutionGlobale);
         }
     }
 
     // C'est le coeur de l'algorithme qui tourne sur chaque thread.
-    // Il cree une population de solutions, les fait se reproduire et muter pour trouver la meilleure configuration.
-    private ResultatEvolution executerEvolution(Reseau reseauLocal, int populationSize, int generations, double mutationRate) {
+    // Il cree une population de solutions, les fait se reproduire et muter pour
+    // trouver la meilleure configuration.
+    private ResultatEvolution executerEvolution(Reseau reseauLocal, int populationSize, int generations,
+            double mutationRate) {
         Random threadRandom = new Random();
 
         // Creation de la premiere generation completement au hasard
@@ -127,7 +137,8 @@ public class GeneticAlgorithm {
                 // On cree un enfant en melangeant les parents
                 Map<String, String> enfant = croisement(parent1, parent2, threadRandom);
 
-                // Parfois, on applique une petite mutation (changement aleatoire) pour eviter les optima locaux
+                // Parfois, on applique une petite mutation (changement aleatoire) pour eviter
+                // les optima locaux
                 if (threadRandom.nextDouble() < mutationRate) {
                     mutation(enfant, threadRandom);
                 }
@@ -147,15 +158,21 @@ public class GeneticAlgorithm {
 
     // --- Utils ---
 
-    // Une petit conteneur pour transporter a la fois la solution (le plan de connexion) et son score (le cout)
+    // Une petit conteneur pour transporter a la fois la solution (le plan de
+    // connexion) et son score (le cout)
     private static class ResultatEvolution {
         Map<String, String> solution;
         double cout;
-        public ResultatEvolution(Map<String, String> s, double c) { this.solution = s; this.cout = c; }
+
+        public ResultatEvolution(Map<String, String> s, double c) {
+            this.solution = s;
+            this.cout = c;
+        }
     }
 
     // Cree une copie complete du reseau.
-    // C'est indispensable pour que chaque thread puisse faire ses tests sans casser le reseau principal.
+    // C'est indispensable pour que chaque thread puisse faire ses tests sans casser
+    // le reseau principal.
     private Reseau clonerReseau(Reseau original) {
         Reseau clone = new Reseau();
         clone.setLambda(original.getLambda());
@@ -172,7 +189,8 @@ public class GeneticAlgorithm {
 
     // --- Utils Genetique ---
 
-    // Cree une solution au hasard : connecte chaque maison a un generateur tire au sort
+    // Cree une solution au hasard : connecte chaque maison a un generateur tire au
+    // sort
     private Map<String, String> genererSolutionAleatoire(Random rnd) {
         Map<String, String> solution = new HashMap<>();
         for (String maison : nomsMaisons) {
@@ -183,13 +201,15 @@ public class GeneticAlgorithm {
     }
 
     // Calcule le score d'une solution (le cout). Plus c'est bas, mieux c'est.
-    // Pour ca, on applique temporairement la solution au reseau pour utiliser la methode de calcul existante.
+    // Pour ca, on applique temporairement la solution au reseau pour utiliser la
+    // methode de calcul existante.
     private double calculerFitness(Reseau r, Map<String, String> solution) {
         appliquerSolutionAuReseau(r, solution);
         return ReseauAlgorithms.calculerCout(r)[0];
     }
 
-    // Prend un plan de connexion (Map) et modifie le reseau pour qu'il corresponde a ce plan
+    // Prend un plan de connexion (Map) et modifie le reseau pour qu'il corresponde
+    // a ce plan
     private void appliquerSolutionAuReseau(Reseau r, Map<String, String> solution) {
         for (Map.Entry<String, String> entry : solution.entrySet()) {
             r.setConnexionUnique(entry.getKey(), entry.getValue());
@@ -197,7 +217,8 @@ public class GeneticAlgorithm {
     }
 
     // Melange deux solutions parents pour creer un enfant.
-    // Pour chaque maison, on garde soit la connexion du pere, soit celle de la mere.
+    // Pour chaque maison, on garde soit la connexion du pere, soit celle de la
+    // mere.
     private Map<String, String> croisement(Map<String, String> p1, Map<String, String> p2, Random rnd) {
         Map<String, String> enfant = new HashMap<>();
         for (String maison : nomsMaisons) {

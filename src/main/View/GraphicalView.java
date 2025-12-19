@@ -1,8 +1,5 @@
-package View;
+package main.View;
 
-import Controller.AppController;
-import Model.*;
-import Algorithms.GeneticAlgorithm;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -12,10 +9,15 @@ import javafx.scene.Node;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import main.Algorithms.GeneticAlgorithm;
+import main.Controller.AppController;
+import main.Model.*;
+
+import static main.Model.Constants.*;
+
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import static Model.Constants.LAMBDA;
 
 /**
  * Interface graphique principale de l'application.

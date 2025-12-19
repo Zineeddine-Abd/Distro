@@ -1,4 +1,4 @@
-package Model;
+package main.Model;
 
 // Représente les catégories de consommation d'une maison.
 // Pour la garantie de la securité et la cohérence des données, on utilise une énumération.

@@ -1,13 +1,13 @@
-package View;
+package main.View;
 
-import Controller.AppController;
-import Model.Generateur;
-import Model.Maison;
-import Model.Reseau;
-import Algorithms.GeneticAlgorithm;
-import Algorithms.FileAlgorithms;
+import main.Algorithms.FileAlgorithms;
+import main.Algorithms.GeneticAlgorithm;
+import main.Controller.AppController;
+import main.Model.Generateur;
+import main.Model.Maison;
+import main.Model.Reseau;
 
-import static Model.Constants.LAMBDA;
+import static main.Model.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;

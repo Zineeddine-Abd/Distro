@@ -1,8 +1,8 @@
-package Controller;
+package main.Controller;
 
-import Model.*;
-import Algorithms.ReseauAlgorithms;
-import Algorithms.FileAlgorithms;
+import main.Algorithms.FileAlgorithms;
+import main.Algorithms.ReseauAlgorithms;
+import main.Model.*;
 
 import java.io.IOException;
 import java.util.List;

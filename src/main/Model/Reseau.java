@@ -1,6 +1,6 @@
-package Model;
+package main.Model;
 
-import static Model.Constants.LAMBDA;
+import static main.Model.Constants.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

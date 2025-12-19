@@ -1,19 +1,21 @@
-package Algorithms;
-
-import Model.Reseau;
-import Model.Generateur;
-import Model.Maison;
+package main.Algorithms;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import main.Model.Generateur;
+import main.Model.Maison;
+import main.Model.Reseau;
+
 /**
- * Contient les algorithmes de calcul statiques pour le reseau (Cout, Surcharge, Dispersion)
+ * Contient les algorithmes de calcul statiques pour le reseau (Cout, Surcharge,
+ * Dispersion)
  */
 public class ReseauAlgorithms {
 
-    // Calcule le score global du reseau (le cout). Plus ce chiffre est bas, plus le reseau est efficace.
+    // Calcule le score global du reseau (le cout). Plus ce chiffre est bas, plus le
+    // reseau est efficace.
     // Elle renvoie trois valeurs : le cout total, la dispersion et la surcharge.
     public static double[] calculerCout(Reseau reseau) {
         if (reseau.getGenerateurs().isEmpty())
@@ -34,7 +36,8 @@ public class ReseauAlgorithms {
     }
 
     // Calcule la charge electrique totale demandee a chaque generateur.
-    // Elle additionne la consommation de toutes les maisons connectees a ce generateur.
+    // Elle additionne la consommation de toutes les maisons connectees a ce
+    // generateur.
     private static Map<String, Integer> calculerCharges(Reseau reseau) {
         Map<String, Integer> charges = new HashMap<>();
         reseau.getGenerateurs().keySet().forEach(nom -> charges.put(nom, 0));
@@ -69,14 +72,16 @@ public class ReseauAlgorithms {
     }
 
     // Mesure a quel point la charge est mal repartie entre les generateurs.
-    // Si tout le monde travaille de facon equitable, ce chiffre est bas (ce qui est bien).
+    // Si tout le monde travaille de facon equitable, ce chiffre est bas (ce qui est
+    // bien).
     private static double calculerDispersion(Map<String, Double> tauxUtilisation, double moyenneTaux) {
         return tauxUtilisation.values().stream()
                 .mapToDouble(taux -> Math.abs(taux - moyenneTaux)).sum();
     }
 
     // Calcule la penalite si des generateurs produisent plus que leur maximum.
-    // Si un generateur est en surchauffe, ce chiffre augmente fortement le cout total.
+    // Si un generateur est en surchauffe, ce chiffre augmente fortement le cout
+    // total.
     private static double calculerSurcharge(Reseau reseau, Map<String, Integer> charges) {
         double surcharge = 0.0;
         for (Generateur gen : reseau.getGenerateurs().values()) {

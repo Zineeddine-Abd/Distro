@@ -1,14 +1,16 @@
-package Exceptions;
+package main.Exceptions;
 
 import java.util.List;
 
 /**
- * Exception levee lorsqu'une erreur de configuration logique est detectee dans le reseau.
+ * Exception levee lorsqu'une erreur de configuration logique est detectee dans
+ * le reseau.
  * Par exemple : une maison non connectee ou connectee a plusieurs generateurs.
  */
 public class ReseauInvalideException extends Exception {
 
-    // Stocke la liste de tous les problemes trouves (car il peut y en avoir plusieurs a la fois)
+    // Stocke la liste de tous les problemes trouves (car il peut y en avoir
+    // plusieurs a la fois)
     private final List<String> erreurs;
 
     // Constructeur simple pour quand il n'y a qu'une seule erreur precise
@@ -17,7 +19,8 @@ public class ReseauInvalideException extends Exception {
         this.erreurs = List.of(message);
     }
 
-    // Constructeur principal utilise quand la validation renvoie une liste de problemes
+    // Constructeur principal utilise quand la validation renvoie une liste de
+    // problemes
     public ReseauInvalideException(List<String> erreurs) {
         super("Le reseau contient " + erreurs.size() + " erreur(s) de configuration logique.");
         this.erreurs = erreurs;
@@ -28,7 +31,8 @@ public class ReseauInvalideException extends Exception {
         return erreurs;
     }
 
-    // Modifie le message par defaut de l'exception pour afficher la liste des erreurs proprement, ligne par ligne
+    // Modifie le message par defaut de l'exception pour afficher la liste des
+    // erreurs proprement, ligne par ligne
     @Override
     public String getMessage() {
         // On concatene les erreurs pour un affichage propre

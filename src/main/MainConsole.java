@@ -1,6 +1,8 @@
-import Controller.AppController;
-import Model.Reseau;
-import View.ConsoleView;
+package main;
+
+import main.Controller.AppController;
+import main.Model.Reseau;
+import main.View.ConsoleView;
 
 public class MainConsole {
 
