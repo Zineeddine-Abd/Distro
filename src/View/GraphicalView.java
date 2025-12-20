@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import Algorithms.GeneticAlgorithm;
 import Controller.AppController;
+import Exceptions.InvalidNameException;
 import Model.*;
 
 /**
@@ -320,10 +321,7 @@ public class GraphicalView extends Application {
             if (dialogButton == btnAjouter) {
                 try {
                     String nom = nomField.getText().trim();
-                    if (nom.isEmpty()) {
-                        afficherErreur("Erreur", "Le nom ne peut pas etre vide.");
-                        return null;
-                    }
+                    validerNomSansEspaces(nom, "generateur");
 
                     int capacite = Integer.parseInt(capaciteField.getText().trim());
                     if (capacite <= 0) {
@@ -332,6 +330,9 @@ public class GraphicalView extends Application {
                     }
 
                     return new Generateur(nom, capacite);
+                } catch (InvalidNameException e) {
+                    afficherErreur("Erreur", e.getMessage());
+                    return null;
                 } catch (NumberFormatException e) {
                     afficherErreur("Erreur", "La capacite doit etre un nombre entier valide.");
                     return null;
@@ -402,8 +403,10 @@ public class GraphicalView extends Application {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == btnAjouter) {
                 String nom = nomField.getText().trim();
-                if (nom.isEmpty()) {
-                    afficherErreur("Erreur", "Le nom ne peut pas etre vide.");
+                try {
+                    validerNomSansEspaces(nom, "maison");
+                } catch (InvalidNameException e) {
+                    afficherErreur("Erreur", e.getMessage());
                     return null;
                 }
 
@@ -1078,10 +1081,23 @@ public class GraphicalView extends Application {
                 info.showAndWait();
 
                 statusLabel.setText("Sauvegarde reussie: " + fichier.getName());
+            } catch (InvalidNameException e) {
+                afficherErreur("Nom invalide",
+                        "Impossible de sauvegarder car un nom contient un espace.\n\n" + e.getMessage());
             } catch (Exception e) {
                 afficherErreur("Erreur de Sauvegarde",
                         "Impossible de sauvegarder:\n\n" + e.getMessage());
             }
+        }
+    }
+
+    private void validerNomSansEspaces(String nom, String type) throws InvalidNameException {
+        if (nom == null || nom.trim().isEmpty()) {
+            throw new InvalidNameException("Le nom ne peut pas etre vide.");
+        }
+        if (nom.matches(".*\\s+.*")) {
+            throw new InvalidNameException(
+                    "Le nom du " + type + " ne doit pas contenir d'espaces. (Ex: G1, Maison2, etc ...)");
         }
     }
 

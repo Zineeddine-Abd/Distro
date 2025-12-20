@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Exceptions.FileSyntaxException;
+import Exceptions.InvalidNameException;
 import Exceptions.ReseauInvalideException;
 import Model.Consommation;
 import Model.Generateur;
@@ -31,10 +32,12 @@ public class FileAlgorithms {
     // Exemple valide : maison(M1,10).
     private static String regex = "^([a-z]+)\\(([a-zA-Z0-9]+),([a-zA-Z0-9]+)\\)\\.$";
 
-    // Le modele pre-compile de la regex pour l'utiliser plus rapidement sur chaque ligne
+    // Le modele pre-compile de la regex pour l'utiliser plus rapidement sur chaque
+    // ligne
     private static final Pattern LINE_PATTERN = Pattern.compile(regex);
 
-    // Variables temporaires pour verifier si la demande totale depasse la capacite totale pendant la lecture du fichier
+    // Variables temporaires pour verifier si la demande totale depasse la capacite
+    // totale pendant la lecture du fichier
     private static int sommeCapacitesGenerateurs = 0;
     private static int sommeBesoinsMaisons = 0;
 
@@ -92,7 +95,6 @@ public class FileAlgorithms {
                         if (sectionEncours > 1)
                             throw new FileSyntaxException(
                                     "Les generateurs doivent etre definis en premier.", numeroLigne, ligne);
-                        sectionEncours = 1;
                         try {
                             int capacite = Integer.parseInt(arg2);
                             if (capacite <= 0) {
@@ -112,6 +114,7 @@ public class FileAlgorithms {
 
                             // On ajoute sa capacite au total disponible
                             sommeCapacitesGenerateurs += capacite;
+                            sectionEncours = 1;
 
                         } catch (NumberFormatException e) {
                             throw new FileSyntaxException("La capacite doit etre un entier.", numeroLigne, ligne);
@@ -124,17 +127,18 @@ public class FileAlgorithms {
                                     "Les maisons doivent etre definies apres les generateurs et avant les connexions.",
                                     numeroLigne,
                                     ligne);
-                        sectionEncours = 2;
 
                         try {
                             Consommation conso = Consommation.fromString(arg2);
                             Maison maison = new Maison(arg1, conso);
-                            reseau.addOrUpdateMaison(maison);
-                            maisons.put(arg1, maison);
-
                             // On ajoute la consommation de cette maison au total demande
                             sommeBesoinsMaisons += conso.getValeurKw();
-
+                            if (generateurs.isEmpty()) {
+                                throw new FileSyntaxException(
+                                        "AUCUN GENERATEUR DEFINI: le reseau doit contenir au moins un generateur.",
+                                        numeroLigne,
+                                        ligne);
+                            }
                             // Verification immediate : est-ce que la demande depasse deja l'offre ?
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
                                 throw new FileSyntaxException(
@@ -146,6 +150,9 @@ public class FileAlgorithms {
                                         numeroLigne,
                                         ligne);
                             }
+                            reseau.addOrUpdateMaison(maison);
+                            maisons.put(arg1, maison);
+                            sectionEncours = 2;
 
                         } catch (IllegalArgumentException e) {
                             throw new FileSyntaxException(
@@ -160,19 +167,31 @@ public class FileAlgorithms {
                             throw new FileSyntaxException(
                                     "Les connexions doivent etre definies apres les generateurs et les maisons.",
                                     numeroLigne, ligne);
-                        sectionEncours = 3;
+
+                        if (reseau.getMaisons().isEmpty()) {
+                            throw new FileSyntaxException(
+                                    "Aucune maison definie dans le fichier (section 'maison' manquante).",
+                                    numeroLigne,
+                                    ligne);
+                        }
 
                         // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements
                         // existants)
                         parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
+                        sectionEncours = 3;
                         break;
                     default:
                         System.out.println("type: " + type);
                         throw new FileSyntaxException(
-                                "Premier mot de la ligne (le type) est inconnu (unexpected), expected \"maison\" \"generateur\", or \"connexion\", found: "
+                                "Premier mot de la ligne (le type) est inconnu, le nom de la ligne doit etre \"maison\" \"generateur\", ou \"connexion\", or on trouve: "
                                         + type,
                                 numeroLigne, ligne);
                 }
+            }
+            if (reseau.getConnexions().isEmpty()) {
+                throw new FileSyntaxException(
+                        "Aucune connexion definie dans le fichier (section 'connexion' manquante).",
+                        numeroLigne, ligne);
             }
         } catch (IOException e) {
             throw new IOException("Erreur de lecture de ligne du fichier : " + fichier.toString(), e.getCause());
@@ -211,10 +230,12 @@ public class FileAlgorithms {
         }
 
         // Verifie la regle d'unicite : une maison ne peut avoir qu'un seul generateur
+        // check also if it's not the same generateur again, if it is the same
+        // generateur add a warning...
         if (reseau.connexionExistePourMaison(nomMaison)) {
             List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
-            String dejaConnecteA = gensConnectes.get(0);
-
+            String dejaConnecteA = gensConnectes.get(0); // length==1
+            // repeating connexion found this exception is also raised...
             throw new FileSyntaxException(
                     "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA
                             + "'. "
@@ -237,13 +258,18 @@ public class FileAlgorithms {
 
     }
 
-    // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format demande.
-    public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {
+    // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format
+    // demande.
+    public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException, InvalidNameException {
 
-        // 1- Verification et ajustement du chemin (Logique intelligente du 2ème fichier)
+        verifierNomsSansEspaces(reseau);
+
+        // 1- Verification et ajustement du chemin (Logique intelligente du 2ème
+        // fichier)
         File fichierCible = new File(cheminFichier);
 
-        // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier, ex: "save.txt")
+        // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier,
+        // ex: "save.txt")
         if (fichierCible.getParent() == null) {
             // On force le chemin vers le dossier "instances"
             File dossierInstances = new File("instances");
@@ -284,5 +310,31 @@ public class FileAlgorithms {
 
         // message de confirmation dans la console
         System.out.println("Réseau sauvegardé avec succès dans : " + fichierCible.getPath());
+    }
+
+    private static void verifierNomsSansEspaces(Reseau reseau) throws InvalidNameException {
+        for (Generateur gen : reseau.getGenerateurs().values()) {
+            verifierNomSansEspaces(gen.getNom(), "generateur");
+        }
+        for (Maison maison : reseau.getMaisons().values()) {
+            verifierNomSansEspaces(maison.getNom(), "maison");
+        }
+        for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
+            verifierNomSansEspaces(entry.getKey(), "maison");
+            for (String nomGen : entry.getValue()) {
+                verifierNomSansEspaces(nomGen, "generateur");
+            }
+        }
+    }
+
+    private static void verifierNomSansEspaces(String nom, String type) throws InvalidNameException {
+        if (nom == null || nom.trim().isEmpty()) {
+            throw new InvalidNameException("Nom invalide (" + type + ") : vide.");
+        }
+        if (nom.matches(".*\\s+.*")) {
+            throw new InvalidNameException(
+                    "Nom invalide (" + type + ") : '" + nom
+                            + "' contient un espace. Veuillez utiliser un nom sans espaces.");
+        }
     }
 }

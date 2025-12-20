@@ -19,11 +19,14 @@ public class Reseau {
     // aussi pour garder l'unicite des noms
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
-    // La map des connexions : chaque maison peut etre connectee a plusieurs generateurs dans le premier menu
+    // La map des connexions : chaque maison peut etre connectee a plusieurs
+    // generateurs dans le premier menu
     // C'est pour ca qu'on utilise une List pour les generateurs
     // Aussi l'utilisation de String pour les noms permet de simplifier la recherche
-    // Aussi pour eviter les problemes avec les objets (ne pas utiliser les objets directement comme clefs)
-    private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value : List<nomGenerateur>}
+    // Aussi pour eviter les problemes avec les objets (ne pas utiliser les objets
+    // directement comme clefs)
+    private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value :
+                                                                          // List<nomGenerateur>}
 
     private int lambda = LAMBDA;
 
@@ -58,9 +61,11 @@ public class Reseau {
         generateurs.put(generateur.getNom(), generateur);
     }
 
-    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est ajoutée à la liste.
+    // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est
+    // ajoutée à la liste.
     public void creerConnexion(String nomMaison, String nomGenerateur) {
-        // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si elle n'existe pas.
+        // computeIfAbsent: Récupere la liste pour la maison, ou en cree une nouvelle si
+        // elle n'existe pas.
         // .add() : Ajoute le générateur à cette liste.
         connexions.computeIfAbsent(nomMaison, k -> new ArrayList<>()).add(nomGenerateur);
     }
@@ -76,7 +81,8 @@ public class Reseau {
         }
     }
 
-    // Remplace toutes les connexions d'une maison par une nouvelle connexion unique, Utilise pour la modification
+    // Remplace toutes les connexions d'une maison par une nouvelle connexion
+    // unique, Utilise pour la modification
     public void setConnexionUnique(String nomMaison, String nomGenerateur) {
         List<String> nouvelleListe = new ArrayList<>();
         nouvelleListe.add(nomGenerateur);
@@ -103,11 +109,19 @@ public class Reseau {
         List<String> problemes = new ArrayList<>();
 
         // Vérifications de base
+        if (maisons == null || generateurs == null || connexions == null || maisons.isEmpty() && generateurs.isEmpty()
+                && connexions.isEmpty()) {
+            problemes.add("Le reseau n'est pas correctement initialise.");
+            return problemes;
+        }
         if (maisons.isEmpty()) {
             problemes.add("Aucune maison definie, veuillez definir au moins une maison.");
         }
         if (generateurs.isEmpty()) {
             problemes.add("Aucun generateur defini, veuillez definir au moins un generateur.");
+        }
+        if (connexions.isEmpty()) {
+            problemes.add("Aucune connexion definie entre maisons et generateurs.");
         }
         if (!problemes.isEmpty()) {
             return problemes;
@@ -167,7 +181,8 @@ public class Reseau {
      * valide.
      */
 
-    // Calcule le cout total du reseau en fonction de la dispersion et de la surcharge.
+    // Calcule le cout total du reseau en fonction de la dispersion et de la
+    // surcharge.
     // Retourne un tableau de double : [coutTotal, dispersion, surcharge]
     public double[] calculerCout() {
         if (generateurs.isEmpty())
@@ -185,7 +200,8 @@ public class Reseau {
         return new double[] { coutTotal, dispersion, surcharge };
     }
 
-    // Calcule la charge totale pour chaque générateur (la somme des capacite des masions connectés).
+    // Calcule la charge totale pour chaque générateur (la somme des capacite des
+    // masions connectés).
     private Map<String, Integer> calculerCharges() {
         Map<String, Integer> charges = new HashMap<>();
         generateurs.keySet().forEach(nom -> charges.put(nom, 0)); // Initialise toutes les charges a 0

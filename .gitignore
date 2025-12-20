@@ -33,3 +33,4 @@ bin/
 
 *.class
 # src/test/View/ConsoleViewParsingTest.java
+analysis.txt

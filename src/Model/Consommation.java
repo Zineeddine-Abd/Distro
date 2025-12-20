@@ -19,7 +19,7 @@ public enum Consommation {
         return valeurKw;
     }
 
-    public static Consommation fromString(String texte) {
+    public static Consommation fromString(String texte) throws IllegalArgumentException {
 
         for (Consommation c : Consommation.values()) {
             if (c.name().equalsIgnoreCase(texte)) {

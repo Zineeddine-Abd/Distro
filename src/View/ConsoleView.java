@@ -21,6 +21,8 @@ public class ConsoleView {
     // Reference au controller de l'application
     private final AppController controller;
 
+    public static final String YELLOW = "\033[0;33m";
+
     // Scanner pour lire les entrees utilisateur
     private final Scanner scanner;
 

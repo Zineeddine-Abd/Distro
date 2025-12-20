@@ -17,7 +17,9 @@ public class FileSyntaxException extends Exception {
     // Cree une nouvelle exception en assemblant un message clair avec le numero de
     // ligne et son contenu
     public FileSyntaxException(String message, int numeroLigne, String contenuLigne) {
-        super("Erreur à la ligne " + numeroLigne + ": " + message + " (Contenu: \"" + contenuLigne + "\")");
+        super("Erreur à la ligne " + numeroLigne + ": " + message
+                + (contenuLigne != null && !contenuLigne.isEmpty() ? " (Contenu de la ligne: \"" + contenuLigne + "\")"
+                        : ""));
         this.numeroLigne = numeroLigne;
         this.contenuLigne = contenuLigne;
     }
