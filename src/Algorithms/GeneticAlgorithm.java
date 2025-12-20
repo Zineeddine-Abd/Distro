@@ -24,15 +24,11 @@ public class GeneticAlgorithm {
     // Liste simple des noms des generateurs pour les tirages aleatoires
     private final List<String> nomsGenerateurs;
 
-    // Generateur de nombres aleatoires
-    private final Random random;
-
     // Prepare l'algorithme en recuperant les listes de maisons et de generateurs
     public GeneticAlgorithm(Reseau reseau) {
         this.reseauOriginal = reseau;
         this.nomsMaisons = new ArrayList<>(reseau.getMaisons().keySet());
         this.nomsGenerateurs = new ArrayList<>(reseau.getGenerateurs().keySet());
-        this.random = new Random();
     }
 
     // C'est le point de depart. Cette methode calcule combien de temps l'algorithme doit tourner,
@@ -42,10 +38,10 @@ public class GeneticAlgorithm {
         int nbMaisons = nomsMaisons.size();
 
         // On adapte la taille de la population selon la taille du reseau (minimum 50 solutions testees a la fois)
-        int dynamicPopSize = Math.max(20, nbMaisons * 5);
+        int dynamicPopSize = Math.max(50, nbMaisons * 5);
 
         // On decide combien de fois on va ameliorer la solution (minimum 1000 cycles)
-        int dynamicGenerations = Math.max(1000, nbMaisons * 100);
+        int dynamicGenerations = Math.min(20000, Math.max(1000, nbMaisons * 100));
 
         // Probabilite qu'une solution change un petit detail au hasard (10%)
         double dynamicMutation = 0.1;
@@ -53,26 +49,28 @@ public class GeneticAlgorithm {
         // 2- Préparation du Multi-threading
         // On regarde combien de coeurs a le processeur pour travailler plus vite
         int nbThreads = Runtime.getRuntime().availableProcessors();
+        if (nbThreads < 1) nbThreads = 1; // Securite : au moins 1 thread
+
         ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
         List<Future<ResultatEvolution>> futures = new ArrayList<>();
         System.out.printf("Lancement de la resolution automatique sur %d threads (Pop: %d, Gen: %d)...\n",
                 nbThreads, dynamicPopSize, dynamicGenerations);
 
-        // 3- Lancement de l'algo en paralléle
-        // On lance une simulation independante sur chaque coeur du processeur
-        for (int i = 0; i < nbThreads; i++) {
-            // Important : on clone le reseau pour que chaque thread travaille sur sa propre copie sans gener les autres
-            Reseau reseauClone = clonerReseau(this.reseauOriginal);
-
-            Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations, dynamicMutation);
-            futures.add(executor.submit(task));
-        }
-
-        // 4- Récupération et comparaison des resultats
         Map<String, String> meilleureSolutionGlobale = null;
         double meilleurCoutGlobal = Double.MAX_VALUE;
 
         try {
+            // 3- Lancement de l'algo en paralléle
+            // On lance une simulation independante sur chaque coeur du processeur
+            for (int i = 0; i < nbThreads; i++) {
+                // Important : on clone le reseau pour que chaque thread travaille sur sa propre copie sans gener les autres
+                Reseau reseauClone = clonerReseau(this.reseauOriginal);
+
+                Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations, dynamicMutation);
+                futures.add(executor.submit(task));
+            }
+
+            // 4- Récupération et comparaison des resultats
             // On recupere le resultat de chaque thread et on garde le meilleur de tous
             for (Future<ResultatEvolution> f : futures) {
                 ResultatEvolution res = f.get(); // Attend la fin du thread
@@ -81,11 +79,32 @@ public class GeneticAlgorithm {
                     meilleureSolutionGlobale = res.solution;
                 }
             }
-        } catch (InterruptedException | ExecutionException e) {
+
+        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            // En cas de gros probleme avec les threads, on affiche l'erreur mais on ne plante pas.
+            // On passera au mode de secours (Plan B).
+            System.err.println(">> ERREUR CRITIQUE DANS LE MULTI-THREADING : " + e.getMessage());
             e.printStackTrace();
+            meilleureSolutionGlobale = null; // Force le passage au plan B
         } finally {
-            // On ferme proprement les outils de calcul parallele
-            executor.shutdown();
+            // On ferme proprement et immediatement les outils de calcul parallele
+            executor.shutdownNow();
+        }
+
+        // --- PLAN B : Mode Secours ---
+        // Si le multi-threading a echoué ou n'a rien trouvé, on execute l'algo sur le thread principal
+        if (meilleureSolutionGlobale == null) {
+            System.out.println(">> Basculement vers le mode de secours (Single Thread)...");
+            try {
+                // On lance une seule evolution classique
+                ResultatEvolution resSecours = executerEvolution(clonerReseau(this.reseauOriginal), dynamicPopSize, dynamicGenerations, dynamicMutation);
+                meilleureSolutionGlobale = resSecours.solution;
+                System.out.println(">> Solution de secours trouvée");
+            } catch (Exception e) {
+                System.err.println(">> ECHEC TOTAL : le mode de secours a échoué");
+                e.printStackTrace();
+                return;
+            }
         }
 
         // 5- Application finale sur le vrai reseau

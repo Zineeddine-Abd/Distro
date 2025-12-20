@@ -19,11 +19,10 @@ public class Reseau {
     // aussi pour garder l'unicite des noms
     private final Map<String, Maison> maisons = new HashMap<>();
     private final Map<String, Generateur> generateurs = new HashMap<>();
-    // La map des connexions : chaque maison peut etre connectee a plusieurs
-    // generateurs dans le premier menu
+    // La map des connexions : chaque maison peut etre connectee a plusieurs generateurs dans le premier menu
     // C'est pour ca qu'on utilise une List pour les generateurs
     // Aussi l'utilisation de String pour les noms permet de simplifier la recherche
-    // Aussi pour eviter les problemes avec les objets
+    // Aussi pour eviter les problemes avec les objets (ne pas utiliser les objets directement comme clefs)
     private final Map<String, List<String>> connexions = new HashMap<>(); // {Key : nomMaison, Value :
                                                                           // List<nomGenerateur>}
 

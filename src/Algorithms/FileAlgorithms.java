@@ -219,21 +219,40 @@ public class FileAlgorithms {
 
     // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format demande.
     public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(cheminFichier))) {
 
-            // 1- On ecrit d'abord tous les generateurs
+        // 1- Verification et ajustement du chemin
+        File fichierCible = new File(cheminFichier);
+
+        // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier, ex: "save.txt")
+        if (fichierCible.getParent() == null) {
+            // On force le chemin vers le dossier "instances"
+            File dossierInstances = new File("instances");
+
+            // Sécurité : On crée le dossier s'il n'existe pas
+            if (!dossierInstances.exists()) {
+                dossierInstances.mkdir();
+            }
+
+            // On recompose le chemin : instances/nomFichier
+            fichierCible = new File(dossierInstances, cheminFichier);
+        }
+
+        // 2- Ecriture (On utilise fichierCible au lieu de la String cheminFichier)
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fichierCible))) {
+
+            // A- On ecrit d'abord tous les generateurs
             for (Generateur gen : reseau.getGenerateurs().values()) {
                 writer.write(String.format("generateur(%s,%d).", gen.getNom(), gen.getCapaciteMax()));
                 writer.newLine();
             }
 
-            // 2- Ensuite toutes les maisons
+            // B- Ensuite toutes les maisons
             for (Maison maison : reseau.getMaisons().values()) {
                 writer.write(String.format("maison(%s,%s).", maison.getNom(), maison.getConsommation().name()));
                 writer.newLine();
             }
 
-            // 3- Enfin toutes les connexions
+            // C- Enfin toutes les connexions
             for (Map.Entry<String, List<String>> entry : reseau.getConnexions().entrySet()) {
                 String nomMaison = entry.getKey();
                 for (String nomGen : entry.getValue()) {
@@ -242,5 +261,8 @@ public class FileAlgorithms {
                 }
             }
         }
+
+        // Petit message de confirmation dans la console
+        System.out.println("Réseau sauvegardé avec succès dans : " + fichierCible.getPath());
     }
 }
