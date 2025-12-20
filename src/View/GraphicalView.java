@@ -262,7 +262,7 @@ public class GraphicalView extends Application {
 
         } else if (menuActuel == 3) {
             // MENU 3 : Fichier charge
-            Button btn0 = creerBoutonStyleControle("Afficher le Cout Actuel en Détail");
+            Button btn0 = creerBoutonStyleControle("Afficher le Cout Actuel en Detail");
             btn0.setOnAction(e -> calculerCout());
 
             Button btn1 = creerBoutonStyleControle("1) Resolution Automatique");
@@ -1176,17 +1176,31 @@ public class GraphicalView extends Application {
 
     // Affiche une boite de dialogue d'erreur standard
     private void afficherErreur(String titre, String message) {
+
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titre);
-        alert.setHeaderText(null);
+        // Mettre un HeaderText pour separer  l'icône du contenu
+        alert.setHeaderText("Une erreur est survenue :");
 
         TextArea textArea = new TextArea(message);
         textArea.setEditable(false);
         textArea.setWrapText(true);
+
+        // force une taille pour le TextArea
+        textArea.setPrefSize(600, 200);
+
+        // Assurer que le composant prend toute la place disponible
         textArea.setMaxWidth(Double.MAX_VALUE);
         textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
 
+        // Placer le TextArea dans le dialog pane
         alert.getDialogPane().setContent(textArea);
+
+        // On rend la fenetre redimensionnable au cas ou le texte est tres long
+        alert.setResizable(true);
+
         alert.showAndWait();
     }
 
