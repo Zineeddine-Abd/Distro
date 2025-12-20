@@ -627,9 +627,16 @@ public class GraphicalView extends Application {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Configuration Invalide");
             alert.setHeaderText("Impossible de passer au Menu 2");
-            alert.setContentText("Le reseau contient des erreurs:\n\n" +
+
+            String message = "Le reseau contient des erreurs:\n\n" +
                     String.join("\n", problemes) + "\n\n" +
-                    "Veuillez corriger ces problemes avant de continuer.");
+                    "Veuillez corriger ces problemes avant de continuer.";
+            TextArea textArea = new TextArea(message);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            alert.getDialogPane().setContent(textArea);
             alert.showAndWait();
             return;
         }
@@ -666,8 +673,15 @@ public class GraphicalView extends Application {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Configuration Invalide");
             alert.setHeaderText("Impossible de calculer le cout");
-            alert.setContentText("Le reseau contient des erreurs:\n\n" +
-                    String.join("\n", problemes));
+
+            String message = "Le reseau contient des erreurs:\n\n" +
+                    String.join("\n", problemes);
+            TextArea textArea = new TextArea(message);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            alert.getDialogPane().setContent(textArea);
             alert.showAndWait();
             return;
         }
@@ -1028,8 +1042,15 @@ public class GraphicalView extends Application {
             Alert confirm = new Alert(Alert.AlertType.WARNING);
             confirm.setTitle("Configuration Invalide");
             confirm.setHeaderText("Le reseau contient des erreurs");
-            confirm.setContentText("Voulez-vous quand meme sauvegarder?\n\n" +
-                    "Erreurs:\n" + String.join("\n", problemes));
+
+            String message = "Voulez-vous quand meme sauvegarder?\n\n" +
+                    "Erreurs:\n" + String.join("\n", problemes);
+            TextArea textArea = new TextArea(message);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            confirm.getDialogPane().setContent(textArea);
             confirm.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
 
             Optional<ButtonType> result = confirm.showAndWait();
@@ -1158,7 +1179,14 @@ public class GraphicalView extends Application {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titre);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+
+        TextArea textArea = new TextArea(message);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+
+        alert.getDialogPane().setContent(textArea);
         alert.showAndWait();
     }
 
