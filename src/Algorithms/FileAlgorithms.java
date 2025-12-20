@@ -284,6 +284,6 @@ public class FileAlgorithms {
         }
 
         // message de confirmation dans la console
-        System.out.println("Reseau sauvegardé avec succes dans : " + fichierCible.getPath());
+        System.out.println("Reseau sauvegarde avec succes dans : " + fichierCible.getPath());
     }
 }
