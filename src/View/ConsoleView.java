@@ -128,9 +128,7 @@ public class ConsoleView {
                     if (problemes.isEmpty()) {
                         afficherMessage("Configuration terminee et validee");
                         configurationTerminee = true;
-                        // Bascule directement vers le menu de resolution (meme menu que le mode
-                        // fichier)
-                        afficherReseauEtCout(controller);
+                        // Bascule directement vers le menu de resolution
                         gererMenuResolution(controller);
                     } else {
                         afficherProblemesConfiguration(problemes);
@@ -241,7 +239,6 @@ public class ConsoleView {
                         String savePath = scanner.nextLine();
                         try {
                             controller.sauvegarderReseau(savePath);
-                            System.out.println("Sauvegarde reussie dans " + savePath);
                         } catch (Exception e) {
                             System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
                         }
@@ -591,6 +588,6 @@ public class ConsoleView {
                 System.out.printf("- %s (%s kW) - %s\n", maison.getNom(), maison.getConsommation().name(), statut);
             }
         }
-        System.out.println("------------------------------------------");
+        System.out.println("----------------------------------------");
     }
 }

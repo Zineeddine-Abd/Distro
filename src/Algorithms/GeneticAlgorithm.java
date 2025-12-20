@@ -70,7 +70,7 @@ public class GeneticAlgorithm {
 
         ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
         List<Future<ResultatEvolution>> futures = new ArrayList<>();
-        System.out.printf("Lancement de la resolution automatique sur %d threads (Pop: %d, Gen: %d)...\n",
+        System.out.printf("\nLancement de la resolution automatique sur %d threads (Pop: %d, Gen: %d)...\n",
                 nbThreads, dynamicPopSize, dynamicGenerations);
 
         // 3- Lancement de l'algo en paralléle
