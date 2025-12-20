@@ -271,6 +271,7 @@ public class FileAlgorithms {
         // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier,
         // ex: "save.txt")
         if (fichierCible.getParent() == null) {
+            System.out.println("Aucun dossier specifie dans le chemin, Sauvegarde automatique dans le dossier 'instances'");
             // On force le chemin vers le dossier "instances"
             File dossierInstances = new File("instances");
 
@@ -309,7 +310,7 @@ public class FileAlgorithms {
         }
 
         // message de confirmation dans la console
-        System.out.println("Réseau sauvegardé avec succès dans : " + fichierCible.getPath());
+        System.out.println("Reseau sauvegarde avec succes dans : " + fichierCible.getPath());
     }
 
     private static void verifierNomsSansEspaces(Reseau reseau) throws InvalidNameException {
