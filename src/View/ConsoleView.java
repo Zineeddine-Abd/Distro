@@ -74,10 +74,6 @@ public class ConsoleView {
 
                 System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
 
-                // Afficher immediatement l'etat charge et son cout avant toute action
-                // utilisateur
-                afficherReseauEtCout(controller);
-
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
 
