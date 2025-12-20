@@ -289,7 +289,7 @@ public class ConsoleView {
 
     // Ajout d'une maison
     private void traiterAjoutMaison() {
-        System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) : ");
+        System.out.print("Entrez le nom et le type de consommation (BASSE, NORMALE, FORTE) (ex: M1 BASSE) : ");
         String[] entrees = scanner.nextLine().split(" ");
         if (entrees.length != 2) {
             afficherErreur("Format incorrect");
