@@ -1,4 +1,4 @@
-package test.Algorithms;
+package Algorithms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,7 +13,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import Algorithms.FileAlgorithms;
 import Exceptions.InvalidFileExtensionException;
 import Exceptions.InvalidNameException;
 import Exceptions.ReseauInvalideException;

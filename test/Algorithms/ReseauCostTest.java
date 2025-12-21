@@ -1,10 +1,9 @@
-package test.Algorithms;
+package Algorithms;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import org.junit.jupiter.api.Test;
 
-import Algorithms.ReseauAlgorithms;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;

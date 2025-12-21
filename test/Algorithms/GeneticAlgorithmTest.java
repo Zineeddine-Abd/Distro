@@ -1,6 +1,5 @@
-package test.Algorithms;
+package Algorithms;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -8,7 +7,6 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import Algorithms.GeneticAlgorithm;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;

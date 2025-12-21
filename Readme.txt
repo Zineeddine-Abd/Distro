@@ -67,7 +67,7 @@
         - Lecture et parsing des fichiers d'instances de réseaux avec gestion des exceptions et affichage complet des erreurs syntaxiques et logiques trouvés.
         — Implementation d'un algorithme stochastique inspiré de l'algorithme genetique avec une adaptation pertinente a notre probleme.
         - Implementation d'une interface graphique avec JavaFX pour visualiser les réseaux.
-        - Implementation des tests unitaires pour valider les composants critiques de l'application.
+        - Implementation des tests unitaires, pour valider les composants critiques de l'application. L'approche de test privilégie la validation des fonctionnalités clés (parsing, calculs, algorithme) et des cas limites, plutôt qu'une couverture unitaire stricte par classe, afin de mieux gérer les interdépendances.
         - Gestion des erreurs et des exceptions.
         - Une Architecture MVC modulaire et extensible avec des classes bien définies pour chaque composant et separation des responsabilites.
         - Respect des bonnes pratiques de programmation orientée objet.

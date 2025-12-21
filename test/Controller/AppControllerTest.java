@@ -1,4 +1,4 @@
-package test.Controller;
+package Controller;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import Controller.AppController;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;

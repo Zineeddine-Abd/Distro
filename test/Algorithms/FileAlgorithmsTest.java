@@ -1,4 +1,4 @@
-package test.Algorithms;
+package Algorithms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,11 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import Algorithms.FileAlgorithms;
-import Exceptions.FileSyntaxException;
 import Exceptions.InvalidFileExtensionException;
 import Exceptions.ReseauInvalideSyntaxException;
-import Exceptions.ReseauInvalideException;
 import Model.Consommation;
 import Model.Reseau;
 import Model.Generateur;
