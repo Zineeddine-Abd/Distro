@@ -322,13 +322,13 @@ public class FileAlgorithms {
             } else {
                 if (maisons.isEmpty()) {
                     syntaxErrors.add(new FileSyntaxException(
-                            "AUCUNE MAISON DEFINIE: le reseau doit contenir au moins une maison.",
+                            "ERREUR LOGIQUE LORS DU PARSING : AUCUNE MAISON DEFINIE: le reseau doit contenir au moins une maison.",
                             numeroLigne,
                             ligne));
                 }
                 if (generateurs.isEmpty()) {
                     syntaxErrors.add(new FileSyntaxException(
-                            "AUCUN GENERATEUR DEFINI: le reseau doit contenir au moins un generateur.",
+                            "ERREUR LOGIQUE LORS DU PARSING : AUCUN GENERATEUR DEFINI: le reseau doit contenir au moins un generateur.",
                             numeroLigne,
                             ligne));
                 }
@@ -336,11 +336,11 @@ public class FileAlgorithms {
                     if (sectionEncours == 3) {
                         // we have already added an error for that case
                         syntaxErrors.add(new FileSyntaxException(
-                                "AUCUNE CONNEXION VALIDE N'A ETE DEFINIE dans le fichier (section 'connexion' entierement invalide).",
+                                "ERREUR LOGIQUE LORS DU PARSING : AUCUNE CONNEXION VALIDE N'A ETE DEFINIE dans le fichier (section 'connexion' entierement invalide).",
                                 numeroLigne, ligne));
                     } else
                         syntaxErrors.add(new FileSyntaxException(
-                                "AUCUNE CONNEXION DEFINIE dans le fichier (section 'connexion' manquante).",
+                                "ERREUR LOGIQUE LORS DU PARSING : AUCUNE CONNEXION DEFINIE dans le fichier (section 'connexion' manquante).",
                                 numeroLigne, ligne));
                 }
             }

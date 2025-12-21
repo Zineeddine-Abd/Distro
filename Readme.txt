@@ -1,3 +1,8 @@
+Membres du Groupe :
+- Oussama DJEZIRI
+- Zine Eddine ABDELADIM
+
+
 1 - Configuration :
     - Télécharger JavaFX SDK 11 ou supérieur.
     - Décompresser le fichier téléchargé dans un répertoire de votre choix (exemple : D:\JavaFX11)
@@ -62,76 +67,84 @@
      - Les fichiers qui contient des instances predefinis des reseaux sont situés dans le dossier "instances"
      - Le deuxieme argument est optionnel (lambda) et vaut 10 par defaut si non fourni.
     ---------------------------------------------------------------------------------------------------------
+    
+3 - Tests Unitaires :
+    Emplacement :
+        Les fichiers sources des tests se trouvent dans le répertoire "test" à la racine du projet.
 
-    Fonctionnalités implementées : (100%)
-        - Lecture et parsing des fichiers d'instances de réseaux avec gestion des exceptions et affichage complet des erreurs syntaxiques et logiques trouvés.
-        — Implementation d'un algorithme stochastique inspiré de l'algorithme genetique avec une adaptation pertinente a notre probleme.
-        - Implementation d'une interface graphique avec JavaFX pour visualiser les réseaux.
-        - Implementation des tests unitaires, pour valider les composants critiques de l'application. L'approche de test privilégie la validation des fonctionnalités clés (parsing, calculs, algorithme) et des cas limites, plutôt qu'une couverture unitaire stricte par classe, afin de mieux gérer les interdépendances.
-        - Gestion des erreurs et des exceptions.
-        - Une Architecture MVC modulaire et extensible avec des classes bien définies pour chaque composant et separation des responsabilites.
-        - Respect des bonnes pratiques de programmation orientée objet.
-        - Utilisation correcte des paramètres de la ligne de commande avec documentation de la compilation et l'exécution.
-        - Une bonne qualité de l’interface textuelle et graphique.
-        - Documentation complète du code avec des commentaires clairs et concis.
+    Approche et Stratégie de Test : 
+        Notre stratégie privilégie la validation des fonctionnalités clés (Functional Testing) et des scénarios d'intégration plutôt qu'une couverture unitaire stricte par classe isolée.
+	
 
-    Algorithme de resolution :
-        Ce projet résout un problème d'optimisation combinatoire complexe (le raccordement optimal maisons-générateurs)
-        en utilisant une adaptation personnalisée inspiré de l'algorithme genetique. L'approche est stochastique, ce qui permet
-        d'explorer l'espace des solutions bien plus efficacement qu'une approche déterministe.
+4 - Fonctionnalités implementées : (100%)
+    - Lecture et parsing des fichiers d'instances de réseaux avec gestion des exceptions et affichage complet des erreurs syntaxiques et logiques trouvés.
+    — Implementation d'un algorithme stochastique inspiré de l'algorithme genetique avec une adaptation pertinente a notre probleme.
+    - Implementation d'une interface graphique avec JavaFX pour visualiser les réseaux.
+    - Implementation des tests unitaires, pour valider les composants critiques de l'application. L'approche de test privilégie la validation des fonctionnalités clés (parsing, calculs, algorithme) et des cas limites, plutôt qu'une couverture unitaire stricte par classe, afin de mieux gérer les interdépendances.
+    - Gestion des erreurs et des exceptions.
+    - Une Architecture MVC modulaire et extensible avec des classes bien définies pour chaque composant et separation des responsabilites.
+    - Respect des bonnes pratiques de programmation orientée objet.
+    - Utilisation correcte des paramètres de la ligne de commande avec documentation de la compilation et l'exécution.
+    - Une bonne qualité de l’interface textuelle et graphique.
+    - Documentation complète du code avec des commentaires clairs et concis.
 
-        Principes Fondamentaux :
-        L'algorithme repose sur l'évolution d'un ensemble de solutions candidates appelé "Population".
-        Au fil de plusieurs itérations, appelées "Générations", cette population s'améliore par sélection naturelle.
-        Plus la population est grande, plus la diversité est élevée ; plus le nombre de générations est grand,
-        plus l'algorithme a de temps pour converger vers l'optimum.
+5 - Algorithme de resolution :
+    Ce projet résout un problème d'optimisation combinatoire complexe (le raccordement optimal maisons-générateurs)
+    en utilisant une adaptation personnalisée inspiré de l'algorithme genetique. L'approche est stochastique, ce qui permet
+    d'explorer l'espace des solutions bien plus efficacement qu'une approche déterministe.
 
-        1. Modélisation des Individus de la population (Génome) :
-           Contrairement aux approches binaires classiques, nous modélisons une solution (un individu) par un reseau représenté par une
-           Map<Maison, Generateur>.
-           - Avantage : Cette structure de données garantit structurellement le respect de la contrainte forte
-             "une maison est connectée à un unique générateur". Il est impossible de générer une solution invalide
-             lors des croisements.
+    Principes Fondamentaux :
+    L'algorithme repose sur l'évolution d'un ensemble de solutions candidates appelé "Population".
+    Au fil de plusieurs itérations, appelées "Générations", cette population s'améliore par sélection naturelle.
+    Plus la population est grande, plus la diversité est élevée ; plus le nombre de générations est grand,
+    plus l'algorithme a de temps pour converger vers l'optimum.
 
-        2. Cycle d'Évolution (Itératif) :
-           L'algorithme répète les étapes suivantes sur un nombre défini de générations :
+    1. Modélisation des Individus de la population (Génome) :
+       Contrairement aux approches binaires classiques, nous modélisons une solution (un individu) par un reseau représenté par une
+       Map<Maison, Generateur>.
+       - Avantage : Cette structure de données garantit structurellement le respect de la contrainte forte
+         "une maison est connectée à un unique générateur". Il est impossible de générer une solution invalide
+         lors des croisements.
 
-           A. Évaluation et Tri de la Population :
-              Chaque solution est d'abord évaluée via la fonction de coût (Dispersion + Lambda * Surcharge).
-              Ensuite, la population entière est triée par ordre croissant de coût afin de placer les meilleures
-              solutions en tête de liste.
+    2. Cycle d'Évolution (Itératif) :
+       L'algorithme répète les étapes suivantes sur un nombre défini de générations :
 
-           B. Sélection par Élitisme :
-              Une stratégie d'élitisme strict est appliquée : seule la moitié supérieure (50%) de la population triée
-              est conservée. Ces "élites" survivent intactes et constituent le bassin unique de parents pour la suite.
+       A. Évaluation et Tri de la Population :
+          Chaque solution est d'abord évaluée via la fonction de coût (Dispersion + Lambda * Surcharge).
+          Ensuite, la population entière est triée par ordre croissant de coût afin de placer les meilleures
+          solutions en tête de liste.
 
-           C. Croisement (Uniform Crossover) :
-              Pour combler les places vides, deux parents sont selectionnés au hasard parmi l'élite.
-              Pour chaque maison, l'enfant hérite de la connexion du père ou de la mère de manière équiprobable (50/50).
+       B. Sélection par Élitisme :
+          Une stratégie d'élitisme strict est appliquée : seule la moitié supérieure (50%) de la population triée
+          est conservée. Ces "élites" survivent intactes et constituent le bassin unique de parents pour la suite.
 
-           D. Mutation :
-              Avec une probabilité définie (ex: 10%), une mutation est appliquée sur les nouveaux enfants.
-              Elle consiste à changer aléatoirement le générateur d'une maison, introduisant ainsi de la diversité.
-              Elle permet d'éviter la convergence prématurée vers des optima locaux.
+       C. Croisement (Uniform Crossover) :
+          Pour combler les places vides, deux parents sont selectionnés au hasard parmi l'élite.
+          Pour chaque maison, l'enfant hérite de la connexion du père ou de la mère de manière équiprobable (50/50).
 
-        3. Optimisations Avancées et point forts de notre implémentation :
-           - Paramètres Dynamiques (Scalabilité) :
-             Pour éviter le gaspillage de ressources sur de petits réseaux ou une recherche insuffisante sur de grands réseaux,
-             les paramètres sont calculés à la volée avec des bornes de sécurité :
-             * Taille Population = Max(50, 5 * Nb_Maisons)
-             * Nombre Générations = Min(20000, Max(1000, 100 * Nb_Maisons))
+       D. Mutation :
+          Avec une probabilité définie (ex: 10%), une mutation est appliquée sur les nouveaux enfants.
+          Elle consiste à changer aléatoirement le générateur d'une maison, introduisant ainsi de la diversité.
+          Elle permet d'éviter la convergence prématurée vers des optima locaux.
 
-           - Parallélisme (Multi-threading) :
-             L'algorithme étant probabiliste, il peut varier d'une exécution à l'autre. Nous exploitons la puissance
-             moderne des CPU en lançant N instances indépendantes de l'algorithme en parallèle (N = nombre de coeurs logiques).
-             À la fin de l'exécution, les résultats de tous les threads sont comparés et seule la meilleure solution globale est retenue.
+    3. Optimisations Avancées et point forts de notre implémentation :
+       - Paramètres Dynamiques (Scalabilité) :
+         Pour éviter le gaspillage de ressources sur de petits réseaux ou une recherche insuffisante sur de grands réseaux,
+         les paramètres sont calculés à la volée avec des bornes de sécurité :
+         * Taille Population = Max(50, 5 * Nb_Maisons)
+         * Nombre Générations = Min(20000, Max(1000, 100 * Nb_Maisons))
 
-           - Tolérance aux Pannes (Robustesse) :
-             L'application intègre un mécanisme de secours (Fall-back). Si l'exécution multi-thread échoue pour une raison
-             technique (ex: environnement restreint), l'algorithme bascule automatiquement et instantanément sur une
-             exécution séquentielle classique. Cela garantit que l'utilisateur obtient toujours un résultat.
+       - Parallélisme (Multi-threading) :
+         L'algorithme étant probabiliste, il peut varier d'une exécution à l'autre. Nous exploitons la puissance
+         moderne des CPU en lançant N instances indépendantes de l'algorithme en parallèle (N = nombre de coeurs logiques).
+         À la fin de l'exécution, les résultats de tous les threads sont comparés et seule la meilleure solution globale est retenue.
 
-        Note :  -------------------------------------------------------------------------------------------------------------------------------
-            Pour une démonstration visuelle plus claire, ainsi qu’une explication détaillée de l’intérêt de nos choix et de notre modélisation,
-            veuillez consulter le rapport technique (PDF) fourni dans le dossier du projet.
-        ---------------------------------------------------------------------------------------------------------------------------------------
+       - Tolérance aux Pannes (Robustesse) :
+         L'application intègre un mécanisme de secours (Fall-back). Si l'exécution multi-thread échoue pour une raison
+         technique (ex: environnement restreint), l'algorithme bascule automatiquement et instantanément sur une
+         exécution séquentielle classique. Cela garantit que l'utilisateur obtient toujours un résultat.
+
+    Note :  -------------------------------------------------------------------------------------------------------------------------------
+        Pour une démonstration visuelle plus claire, ainsi qu’une explication détaillée de l’intérêt de nos choix et de notre modélisation,
+        veuillez consulter le rapport technique (PDF) fourni dans le dossier du projet.
+    ---------------------------------------------------------------------------------------------------------------------------------------
