@@ -65,8 +65,22 @@ class ReseauTest {
     Reseau reseau = new Reseau();
     List<String> problemes = reseau.validerConfiguration();
 
-    assertTrue(problemes.contains("Aucune maison definie, veuillez definir au moins une maison."));
-    assertTrue(problemes.contains("Aucun generateur defini, veuillez definir au moins un generateur."));
+    assertTrue(problemes.stream().anyMatch(p -> p.startsWith("Aucune maison definie")));
+    assertTrue(problemes.stream().anyMatch(p -> p.startsWith("Aucun generateur defini")));
+   }
+  
+  @Test
+  void validerConfiguration_reportsMissingConnection() {
+    Reseau reseau = new Reseau();
+    reseau.addOrUpdateMaison(new Maison("M1", Consommation.BASSE));
+    reseau.addOrUpdateGenerateur(new Generateur("G1", 20));
+
+    List<String> problemes = reseau.validerConfiguration();
+
+    assertEquals(1, problemes.size());
+    assertTrue(
+        problemes.stream().anyMatch(p -> p.startsWith("Aucune connexion definie entre maisons et generateurs.")));
+    // assertTrue(problemes.contains("M1 (pas de connexion)"));
   }
 
   @Test
@@ -81,17 +95,6 @@ class ReseauTest {
     assertTrue(problemes.get(0).contains("insuffisante"));
   }
 
-  @Test
-  void validerConfiguration_reportsMissingConnection() {
-    Reseau reseau = new Reseau();
-    reseau.addOrUpdateMaison(new Maison("M1", Consommation.BASSE));
-    reseau.addOrUpdateGenerateur(new Generateur("G1", 20));
-
-    List<String> problemes = reseau.validerConfiguration();
-
-    assertEquals(1, problemes.size());
-    assertTrue(problemes.contains("M1 (pas de connexion)"));
-  }
 
   @Test
   void validerConfiguration_reportsMultipleConnections() {

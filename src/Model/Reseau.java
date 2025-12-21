@@ -58,7 +58,13 @@ public class Reseau {
 
     // Ajoute ou met a jour un generateur dans le reseau
     public void addOrUpdateGenerateur(Generateur generateur) {
-        generateurs.put(generateur.getNom(), generateur);
+        if (generateur == null) {
+            throw new IllegalArgumentException("Le generateur ne peut pas etre null.");
+        }
+        if (generateur.getCapaciteMax() <= 0) {
+            throw new IllegalArgumentException("La capacite doit etre un entier strictement positif.");
+        }
+    	generateurs.put(generateur.getNom(), generateur);
     }
 
     // Ajoute une connexion. Si la maison a déjà des connexions, celle-ci est
@@ -109,11 +115,11 @@ public class Reseau {
         List<String> problemes = new ArrayList<>();
 
         // Vérifications de base
-        if (maisons == null || generateurs == null || connexions == null || maisons.isEmpty() && generateurs.isEmpty()
-                && connexions.isEmpty()) {
-            problemes.add("Le reseau n'est pas correctement initialise.");
-            return problemes;
-        }
+		//if (maisons == null || generateurs == null || connexions == null || maisons.isEmpty() && generateurs.isEmpty()
+		//        && connexions.isEmpty()) {
+		//    problemes.add("Le reseau n'est pas correctement initialise.");
+		//    return problemes;
+		//}
         if (maisons.isEmpty()) {
             problemes.add("Aucune maison definie, veuillez definir au moins une maison.");
         }

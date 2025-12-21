@@ -22,10 +22,18 @@ import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
 
+
+/**
+ * Scenarios de test pour le fichier de gestion des fichiers reseaux .txt (FileAlgorithms.java), pour verifier les operations de chargement/sauvegarde
+ */
 class FileAlgorithmsScenariosTest {
 
   @TempDir
   Path tempDir;
+  
+  // ============================================================================
+  // VALIDATION DE CHAGEMENT - RESEAUX VIDES / INCOMPLETS
+  // ============================================================================
 
   @Test
   void load_emptyFile_throwsAggregatedSyntaxError() throws Exception {
@@ -67,15 +75,6 @@ class FileAlgorithmsScenariosTest {
   }
 
   @Test
-  void load_connexionWithUndefinedNode_throwsAggregatedSyntaxErrors() throws Exception {
-    Path file = write("generateur(G1,50).", "maison(M1,BASSE).", "connexion(G1,M2).");
-
-    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
-        () -> FileAlgorithms.chargerReseau(file.toString()));
-    assertTrue(ex.getMessage().contains("Connexion impossible"));
-  }
-
-  @Test
   void load_connexionsEtMaisonsOnly_throwsAggregatedSyntaxErrors() throws Exception {
     // Maisons + connexions, mais aucun generateur defini.
     Path file = write(
@@ -104,6 +103,33 @@ class FileAlgorithmsScenariosTest {
         || ex.getMessage().contains("Les connexions doivent"));
   }
 
+  // ============================================================================
+  // VALIDATION DE CHARGEMENT - ERREURS CONNEXIONS
+  // ============================================================================
+
+  @Test
+  void load_connexionWithUndefinedNode_throwsAggregatedSyntaxErrors() throws Exception {
+    Path file = write("generateur(G1,50).", "maison(M1,BASSE).", "connexion(G1,M2).");
+
+    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
+        () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertTrue(ex.getMessage().contains("Connexion impossible"));
+  }
+
+  @Test
+  void load_maisonConnectedToTwoGenerateurs_throwsAggregatedSyntaxError() throws Exception {
+    Path file = write(
+        "generateur(G1,50).",
+        "generateur(G2,50).",
+        "maison(M1,BASSE).",
+        "connexion(G1,M1).",
+        "connexion(G2,M1).");
+
+    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
+        () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertTrue(ex.getMessage().contains("deja connectee") || ex.getMessage().contains("Impossible de la connecter"));
+  }
+  
   @Test
   void load_allowsConnexionMaisonGenerateurEitherOrder() throws Exception {
     Path file = write("generateur(G1,50).", "generateur(G2,40).", "maison(M1,BASSE).", "maison(M2,NORMAL).",
@@ -113,7 +139,35 @@ class FileAlgorithmsScenariosTest {
     assertTrue(reseau.connexionExiste("M1", "G1"));
     assertTrue(reseau.connexionExiste("M2", "G2"));
   }
+  // ============================================================================
+  // VALIDATIONS DE CHAGEMENT - AGGREGATION DE PLUSIEURS ERREURS (TOUS AFFICHES A LA FOIS)
+  // ============================================================================
 
+  @Test
+  void multiSyntaxErrors_areAggregatedIntoOneException() throws Exception {
+    Path file = write(
+        "generateur(G1,0).",
+        "maison(M1,LOW).",
+        "connexion(G1,M2).");
+
+    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
+        () -> FileAlgorithms.chargerReseau(file.toString()));
+
+    assertTrue(ex.getErreurs().size() >= 3);
+
+    String msg = ex.getMessage();
+    assertTrue(msg.contains("erreur(s)"));
+    assertTrue(msg.contains("ligne 1") || msg.contains("ligne 2") || msg.contains("ligne 3")
+        || msg.contains("Ligne 1") || msg.contains("Ligne 2") || msg.contains("Ligne 3"));
+    assertTrue(msg.contains("La capacite doit etre un entier strictement positif")
+        || msg.contains("La capacite doit etre"));
+    assertTrue(msg.contains("Type de consommation invalide") || msg.contains("consommation"));
+    assertTrue(msg.contains("Connexion impossible"));
+  }
+
+  // ============================================================================
+  // COLLECTE DES AVERTISEMENTS (WARNINGS) - REDECLARATIONS ET DUPLICATIONS
+  // ============================================================================
   @Test
   void load_redeclaredGenerateurAndMaison_collectsWarningsOnlyOnSuccess() throws Exception {
     Path file = write(
@@ -155,19 +209,16 @@ class FileAlgorithmsScenariosTest {
   }
 
   @Test
-  void load_maisonConnectedToTwoGenerateurs_throwsAggregatedSyntaxError() throws Exception {
+  void load_failure_doesNotExposeWarnings() throws Exception {
     Path file = write(
         "generateur(G1,50).",
-        "generateur(G2,50).",
-        "maison(M1,BASSE).",
-        "connexion(G1,M1).",
-        "connexion(G2,M1).");
+        "maison(M1,LOW).", // invalid conso -> aggregated syntax error
+        "connexion(G1,M1).");
 
-    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
-        () -> FileAlgorithms.chargerReseau(file.toString()));
-    assertTrue(ex.getMessage().contains("deja connectee") || ex.getMessage().contains("Impossible de la connecter"));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertTrue(FileAlgorithms.consumeLastLoadWarnings().isEmpty());
   }
-
+  
   @Test
   void load_globalValidationFailure_doesNotExposeWarnings() throws Exception {
     // Parsing OK (warning), mais validation globale KO (maison deconnectee)
@@ -182,50 +233,31 @@ class FileAlgorithmsScenariosTest {
     assertThrows(ReseauInvalideException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
     assertTrue(FileAlgorithms.consumeLastLoadWarnings().isEmpty());
   }
-
-  @Test
-  void load_failure_doesNotExposeWarnings() throws Exception {
-    Path file = write(
-        "generateur(G1,50).",
-        "maison(M1,LOW).", // invalid conso -> aggregated syntax error
-        "connexion(G1,M1).");
-
-    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
-    assertTrue(FileAlgorithms.consumeLastLoadWarnings().isEmpty());
-  }
-
-  @Test
-  void load_nameCanStartWithNumber() throws Exception {
-    Path file = write(
-        "generateur(G1,50).",
-        "maison(1M,BASSE).",
-        "connexion(G1,1M).");
-
-    Reseau reseau = FileAlgorithms.chargerReseau(file.toString());
-    assertTrue(reseau.maisonExiste("1M"));
-    assertTrue(reseau.connexionExiste("1M", "G1"));
-  }
-
+  
+  // ============================================================================
+  // VALIDATIONS EXTENSIONS DU FICHIER - CHARGEMENT
+  // ============================================================================
   @Test
   void load_rejectsNonTxtExtension() throws Exception {
-    assertThrows(InvalidFileExtensionException.class, () -> FileAlgorithms.chargerReseau("reseau.csv"));
-  }
-
+	  assertThrows(InvalidFileExtensionException.class, () -> FileAlgorithms.chargerReseau("reseau.csv"));
+  }  
   @Test
   void load_appendsTxtWhenMissing_andLoadsFile() throws Exception {
-    Path file = write(
-        "generateur(G1,50).",
-        "maison(M1,BASSE).",
-        "connexion(G1,M1).");
+	    Path file = write(
+	        "generateur(G1,50).",
+	        "maison(M1,BASSE).",
+	        "connexion(G1,M1).");
 
-    // Remove the .txt suffix before calling chargerReseau
-    String fullPath = file.toString();
-    assertTrue(fullPath.endsWith(".txt"));
-    String withoutExt = fullPath.substring(0, fullPath.length() - 4);
+	    String fullPath = file.toString();
+	    assertTrue(fullPath.endsWith(".txt"));
+	    String withoutExt = fullPath.substring(0, fullPath.length() - 4);
 
-    Reseau reseau = FileAlgorithms.chargerReseau(withoutExt);
-    assertTrue(reseau.connexionExiste("M1", "G1"));
+	    Reseau reseau = FileAlgorithms.chargerReseau(withoutExt);
+	    assertTrue(reseau.connexionExiste("M1", "G1"));
   }
+  // ============================================================================
+  //  VALIDATION EXTENSION DU FICHIER - SAUVEGARDE
+  // ============================================================================
 
   @Test
   void save_appendsTxtWhenMissing_andWritesFile() throws Exception {
@@ -252,6 +284,36 @@ class FileAlgorithmsScenariosTest {
     assertThrows(InvalidFileExtensionException.class,
         () -> FileAlgorithms.sauvegarderReseau(reseau, tempDir.resolve("out.csv").toString()));
   }
+  
+
+  @Test
+  void save_toDirectoryPath_throwsIOException() throws Exception {
+    Reseau reseau = new Reseau();
+    reseau.addOrUpdateGenerateur(new Generateur("G1", 60));
+    reseau.addOrUpdateMaison(new Maison("M1", Consommation.BASSE));
+    reseau.setConnexionUnique("M1", "G1");
+
+    Path dir = tempDir.resolve("target.txt");
+    Files.createDirectory(dir);
+
+    assertThrows(IOException.class, () -> FileAlgorithms.sauvegarderReseau(reseau, dir.toString()));
+  }
+
+  // ============================================================================
+  // VALIDATION DES NOMS
+  // ============================================================================
+
+  @Test
+  void load_nameCanStartWithNumber() throws Exception {
+    Path file = write(
+        "generateur(G1,50).",
+        "maison(1M,BASSE).",
+        "connexion(G1,1M).");
+
+    Reseau reseau = FileAlgorithms.chargerReseau(file.toString());
+    assertTrue(reseau.maisonExiste("1M"));
+    assertTrue(reseau.connexionExiste("1M", "G1"));
+  }
 
   @Test
   void save_rejectsNamesWithSpaces() throws Exception {
@@ -264,45 +326,11 @@ class FileAlgorithmsScenariosTest {
         () -> FileAlgorithms.sauvegarderReseau(reseau, tempDir.resolve("out").toString()));
   }
 
-  @Test
-  void save_toDirectoryPath_throwsIOException() throws Exception {
-    Reseau reseau = new Reseau();
-    reseau.addOrUpdateGenerateur(new Generateur("G1", 60));
-    reseau.addOrUpdateMaison(new Maison("M1", Consommation.BASSE));
-    reseau.setConnexionUnique("M1", "G1");
 
-    Path dir = tempDir.resolve("target.txt");
-
-    // Create an actual directory at a path that already ends with .txt
-    // (so FileAlgorithms.normalizeTxtPathForSave won't change it).
-    Files.createDirectory(dir);
-
-    // Try writing to a directory path (should fail as a file target)
-    assertThrows(IOException.class, () -> FileAlgorithms.sauvegarderReseau(reseau, dir.toString()));
-  }
-
-  @Test
-  void multiSyntaxErrors_areAggregatedIntoOneException() throws Exception {
-    Path file = write(
-        "generateur(G1,0).",
-        "maison(M1,LOW).",
-        "connexion(G1,M2).");
-
-    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
-        () -> FileAlgorithms.chargerReseau(file.toString()));
-
-    assertTrue(ex.getErreurs().size() >= 3);
-
-    // Expect multiple error lines in message
-    String msg = ex.getMessage();
-    assertTrue(msg.contains("erreur(s)"));
-    assertTrue(msg.contains("ligne 1") || msg.contains("ligne 2") || msg.contains("ligne 3")
-        || msg.contains("Ligne 1") || msg.contains("Ligne 2") || msg.contains("Ligne 3"));
-    assertTrue(msg.contains("La capacite doit etre un entier strictement positif")
-        || msg.contains("La capacite doit etre"));
-    assertTrue(msg.contains("Type de consommation invalide") || msg.contains("consommation"));
-    assertTrue(msg.contains("Connexion impossible"));
-  }
+  
+  
+  
+  
 
   private Path write(String... lines) throws IOException {
     Path file = tempDir.resolve("reseau-" + System.nanoTime() + ".txt");

@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 // Cette classe est le cerveau de l'optimisation.
 // Elle inspire de l'algorithme genetique (inspire de l'evolution naturelle) pour trouver
 // automatiquement la meilleure facon de connecter les maisons aux generateurs.
-// On a adapté l'algorithme genetique a notre probleme et pour assuré l'optimalité on a ajouté deux foncionalites :
+// On a adapté l'algorithme genetique a notre probleme et pour assurer l'optimalité on a ajouté deux foncionalites :
 // - Le multi-threading pour exploiter tous les coeurs du processeur et trouver une solution plus rapidement et proche de l'optimale en comparant les resultats.
 // - Un calcul dynamique des parametres (taille de population, nombre de generations) en fonction de la taille du reseau a optimiser.
 public class GeneticAlgorithm {
