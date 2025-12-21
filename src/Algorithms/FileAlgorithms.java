@@ -241,7 +241,7 @@ public class FileAlgorithms {
                             // Verification immediate : est-ce que la demande depasse deja l'offre ?
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs && generateurs.size() > 0) {
                                 syntaxErrors.add(new FileSyntaxException(
-                                        "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' ("
+                                        "ERREUR LOGIQUE LORS DU PARSING : CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' ("
                                                 + consoMaison.getValeurKw() + "kW) " +
                                                 "porte la demande totale a " + sommeBesoinsMaisons
                                                 + "kW, ce qui depasse la capacite totale des generateurs (" +

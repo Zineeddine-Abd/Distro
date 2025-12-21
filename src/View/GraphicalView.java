@@ -1,5 +1,7 @@
 package View;
 
+import Exceptions.ReseauInvalideException;
+import Exceptions.ReseauInvalideSyntaxException;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -13,6 +15,7 @@ import javafx.stage.Stage;
 import static Model.Constants.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -107,11 +110,12 @@ public class GraphicalView extends Application {
                     }
                     rafraichirCoutLabel();
                 } else {
-                    menuActuel = 1;
-                    mettreAJourMenuInfo();
+                    // Echec du chargement, on quitte l'application
+                    javafx.application.Platform.exit();
                 }
             });
         } else {
+            // Pas de fichier en argument, on reste en mode construction manuelle
             rafraichirGraphe();
             rafraichirInfos();
             mettreAJourMenuInfo();
@@ -982,12 +986,26 @@ public class GraphicalView extends Application {
         } catch (NumberFormatException e) {
             afficherErreur("Erreur Lambda", "La valeur de lambda doit etre un entier.");
             return false;
+            // Extension de fichier incorrecte
         } catch (InvalidFileExtensionException e) {
             afficherErreur("Extension invalide", e.getMessage());
             return false;
+        } catch (ReseauInvalideSyntaxException e) {
+            // la syntaxe
+            afficherErreur("Fichier Incorrect (Syntaxe)", e.getMessage());
+            return false;
+        } catch (ReseauInvalideException e) {
+            // la logique
+            afficherErreur("Reseau Incohérent (Logique)", e.getMessage());
+            return false;
+        } catch (FileNotFoundException e) {
+            // fichier non trouvé
+            afficherErreur("Fichier Introuvable", "Le fichier n'existe pas ou le chemin est incorrect :\n" + chemin);
+            return false;
         } catch (Exception e) {
-            afficherErreur("Erreur de Chargement",
-                    "Impossible de charger le reseau:\n\n" + e.getMessage());
+            afficherErreur("Erreur Inattendue",
+                    "Une erreur technique est survenue :\n\n" + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

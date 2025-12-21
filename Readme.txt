@@ -64,7 +64,7 @@
     ---------------------------------------------------------------------------------------------------------
 
     Fonctionnalités implementées : (100%)
-        - Lecture et parsing des fichiers d'instances de réseaux.
+        - Lecture et parsing des fichiers d'instances de réseaux avec gestion des exceptions et affichage complet des erreurs syntaxiques et logiques trouvés.
         — Implementation d'un algorithme stochastique inspiré de l'algorithme genetique avec une adaptation pertinente a notre probleme.
         - Implementation d'une interface graphique avec JavaFX pour visualiser les réseaux.
         - Implementation des tests unitaires pour valider les composants critiques de l'application.
@@ -86,7 +86,7 @@
         Plus la population est grande, plus la diversité est élevée ; plus le nombre de générations est grand,
         plus l'algorithme a de temps pour converger vers l'optimum.
 
-        1. Modélisation de l'Individu (Génome) :
+        1. Modélisation des Individus de la population (Génome) :
            Contrairement aux approches binaires classiques, nous modélisons une solution (un individu) par un reseau représenté par une
            Map<Maison, Generateur>.
            - Avantage : Cette structure de données garantit structurellement le respect de la contrainte forte
@@ -131,4 +131,7 @@
              technique (ex: environnement restreint), l'algorithme bascule automatiquement et instantanément sur une
              exécution séquentielle classique. Cela garantit que l'utilisateur obtient toujours un résultat.
 
-        Note : Pour une démonstration visuelle et plus logique, veuillez consulter le rapport technique (PDF) fourni dans le dossier du projet.
+        Note :  -------------------------------------------------------------------------------------------------------------------------------
+            Pour une démonstration visuelle plus claire, ainsi qu’une explication détaillée de l’intérêt de nos choix et de notre modélisation,
+            veuillez consulter le rapport technique (PDF) fourni dans le dossier du projet.
+        ---------------------------------------------------------------------------------------------------------------------------------------
