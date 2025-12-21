@@ -11,6 +11,8 @@ import java.util.Scanner;
 import Algorithms.FileAlgorithms;
 import Algorithms.GeneticAlgorithm;
 import Controller.AppController;
+import Exceptions.ReseauInvalideException;
+import Exceptions.ReseauInvalideSyntaxException;
 import Model.Generateur;
 import Model.Maison;
 import Model.Reseau;
@@ -79,6 +81,16 @@ public class ConsoleView {
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
 
+            } catch (ReseauInvalideSyntaxException e) {
+                // Gerer les erreurs de syntaxe dans le fichier
+                System.err.println("ERREUR FATALE : Syntaxe invalide dans le fichier d entree.");
+                System.err.println(e.getMessage());
+                System.exit(1);
+            } catch (ReseauInvalideException e) {
+                // Gerer les erreurs de configuration logique du reseau
+                System.err.println("ERREUR FATALE : Le reseau charge est invalide.");
+                System.err.println(e.getMessage());
+                System.exit(1);
             } catch (Exception e) {
                 // Gerer les erreurs de chargement du fichier
                 System.err.println("ERREUR FATALE : Impossible de charger le reseau.");

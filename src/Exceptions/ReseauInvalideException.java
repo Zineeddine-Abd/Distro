@@ -11,7 +11,7 @@ public class ReseauInvalideException extends Exception {
 
     // Stocke la liste de tous les problemes trouves (car il peut y en avoir
     // plusieurs a la fois)
-    private final List<String> erreurs;
+    protected List<String> erreurs;
 
     // Constructeur simple pour quand il n'y a qu'une seule erreur precise
     public ReseauInvalideException(String message) {

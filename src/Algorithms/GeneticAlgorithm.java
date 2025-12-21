@@ -25,7 +25,8 @@ public class GeneticAlgorithm {
     // Liste simple des noms des generateurs pour les tirages aleatoires
     private final List<String> nomsGenerateurs;
 
-    // Generateur de nombres aleatoires (injectable pour les tests - FONCTIONNALITÉ SOURCE A)
+    // Generateur de nombres aleatoires (injectable pour les tests - FONCTIONNALITÉ
+    // SOURCE A)
     private final Random random;
 
     // Prepare l'algorithme en recuperant les listes de maisons et de generateurs
@@ -42,8 +43,10 @@ public class GeneticAlgorithm {
         this.random = (random == null) ? new Random() : random;
     }
 
-    // C'est le point de depart. Cette methode calcule combien de temps l'algorithme doit tourner,
-    // lance plusieurs recherches en parallele sur le processeur, et applique la meilleure solution trouvee a la fin.
+    // C'est le point de depart. Cette methode calcule combien de temps l'algorithme
+    // doit tourner,
+    // lance plusieurs recherches en parallele sur le processeur, et applique la
+    // meilleure solution trouvee a la fin.
     public void solve() {
         // Validation (SOURCE A)
         if (nomsGenerateurs.isEmpty() || nomsMaisons.isEmpty()) {
@@ -54,10 +57,12 @@ public class GeneticAlgorithm {
         // 1- Calcul Dynamique des Paramètres (VALEURS SOURCE B)
         int nbMaisons = nomsMaisons.size();
 
-        // On adapte la taille de la population selon la taille du reseau (minimum 50 solutions testees a la fois)
+        // On adapte la taille de la population selon la taille du reseau (minimum 50
+        // solutions testees a la fois)
         int dynamicPopSize = Math.max(50, nbMaisons * 5);
 
-        // On decide combien de fois on va ameliorer la solution (minimum 1000 cycles, plafonné à 20000)
+        // On decide combien de fois on va ameliorer la solution (minimum 1000 cycles,
+        // plafonné à 20000)
         int dynamicGenerations = Math.min(20000, Math.max(1000, nbMaisons * 100));
 
         // Probabilite qu'une solution change un petit detail au hasard (10%)
@@ -66,7 +71,8 @@ public class GeneticAlgorithm {
         // 2- Préparation du Multi-threading
         // On regarde combien de coeurs a le processeur pour travailler plus vite
         int nbThreads = Runtime.getRuntime().availableProcessors();
-        if (nbThreads < 1) nbThreads = 1; // Securite (SOURCE B)
+        if (nbThreads < 1)
+            nbThreads = 1; // Securite (SOURCE B)
 
         ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
         List<Future<ResultatEvolution>> futures = new ArrayList<>();
@@ -82,7 +88,8 @@ public class GeneticAlgorithm {
             // copie sans gener les autres
             Reseau reseauClone = clonerReseau(this.reseauOriginal);
 
-            // Utilise un Random derive pour garantir la reproductibilite par thread (LOGIQUE SOURCE A)
+            // Utilise un Random derive pour garantir la reproductibilite par thread
+            // (LOGIQUE SOURCE A)
             Random threadRandom = new Random(baseSeed + i);
 
             Callable<ResultatEvolution> task = () -> executerEvolution(reseauClone, dynamicPopSize, dynamicGenerations,
@@ -114,13 +121,15 @@ public class GeneticAlgorithm {
         }
 
         // --- PLAN B : Mode Secours (FONCTIONNALITÉ SOURCE B) ---
-        // Si le multi-threading a echoué ou n'a rien trouvé, on execute l'algo sur le thread principal
+        // Si le multi-threading a echoué ou n'a rien trouvé, on execute l'algo sur le
+        // thread principal
         if (meilleureSolutionGlobale == null) {
             System.out.println(">> Basculement vers le mode de secours (Single Thread)...");
             try {
                 // On lance une seule evolution classique
                 // Note : On passe 'this.random' pour respecter la logique de Source A
-                ResultatEvolution resSecours = executerEvolution(clonerReseau(this.reseauOriginal), dynamicPopSize, dynamicGenerations, dynamicMutation, this.random);
+                ResultatEvolution resSecours = executerEvolution(clonerReseau(this.reseauOriginal), dynamicPopSize,
+                        dynamicGenerations, dynamicMutation, this.random);
                 meilleureSolutionGlobale = resSecours.solution;
                 System.out.println(">> Solution de secours trouvée.");
             } catch (Exception e) {
@@ -131,7 +140,8 @@ public class GeneticAlgorithm {
         }
 
         // 5- Application finale sur le vrai reseau
-        // On applique la solution gagnante au vrai reseau pour que l'utilisateur voie le resultat
+        // On applique la solution gagnante au vrai reseau pour que l'utilisateur voie
+        // le resultat
         if (meilleureSolutionGlobale != null) {
             appliquerSolutionAuReseau(this.reseauOriginal, meilleureSolutionGlobale);
         }
@@ -142,7 +152,7 @@ public class GeneticAlgorithm {
     // trouver la meilleure configuration.
     // (Signature SOURCE A conservée : prend un Random en paramètre)
     private ResultatEvolution executerEvolution(Reseau reseauLocal, int populationSize, int generations,
-                                                double mutationRate, Random threadRandom) {
+            double mutationRate, Random threadRandom) {
         // Creation de la premiere generation completement au hasard
         List<Map<String, String>> population = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
@@ -188,7 +198,8 @@ public class GeneticAlgorithm {
 
     // --- Utils ---
 
-    // Une petit conteneur pour transporter a la fois la solution (le plan de connexion) et son score (le cout)
+    // Une petit conteneur pour transporter a la fois la solution (le plan de
+    // connexion) et son score (le cout)
     private static class ResultatEvolution {
         Map<String, String> solution;
         double cout;
@@ -200,7 +211,8 @@ public class GeneticAlgorithm {
     }
 
     // Cree une copie complete du reseau.
-    // C'est indispensable pour que chaque thread puisse faire ses tests sans casser le reseau principal.
+    // C'est indispensable pour que chaque thread puisse faire ses tests sans casser
+    // le reseau principal.
     private Reseau clonerReseau(Reseau original) {
         Reseau clone = new Reseau();
         clone.setLambda(original.getLambda());
@@ -217,7 +229,8 @@ public class GeneticAlgorithm {
 
     // --- Utils Genetique ---
 
-    // Cree une solution au hasard : connecte chaque maison a un generateur tire au sort
+    // Cree une solution au hasard : connecte chaque maison a un generateur tire au
+    // sort
     private Map<String, String> genererSolutionAleatoire(Random rnd) {
         Map<String, String> solution = new HashMap<>();
         for (String maison : nomsMaisons) {
@@ -228,13 +241,15 @@ public class GeneticAlgorithm {
     }
 
     // Calcule le score d'une solution (le cout). Plus c'est bas, mieux c'est.
-    // Pour ca, on applique temporairement la solution au reseau pour utiliser la methode de calcul existante.
+    // Pour ca, on applique temporairement la solution au reseau pour utiliser la
+    // methode de calcul existante.
     private double calculerFitness(Reseau r, Map<String, String> solution) {
         appliquerSolutionAuReseau(r, solution);
         return ReseauAlgorithms.calculerCout(r)[0];
     }
 
-    // Prend un plan de connexion (Map) et modifie le reseau pour qu'il corresponde a ce plan
+    // Prend un plan de connexion (Map) et modifie le reseau pour qu'il corresponde
+    // a ce plan
     private void appliquerSolutionAuReseau(Reseau r, Map<String, String> solution) {
         for (Map.Entry<String, String> entry : solution.entrySet()) {
             r.setConnexionUnique(entry.getKey(), entry.getValue());
@@ -242,7 +257,8 @@ public class GeneticAlgorithm {
     }
 
     // Melange deux solutions parents pour creer un enfant.
-    // Pour chaque maison, on garde soit la connexion du pere, soit celle de la mere.
+    // Pour chaque maison, on garde soit la connexion du pere, soit celle de la
+    // mere.
     private Map<String, String> croisement(Map<String, String> p1, Map<String, String> p2, Random rnd) {
         Map<String, String> enfant = new HashMap<>();
         for (String maison : nomsMaisons) {

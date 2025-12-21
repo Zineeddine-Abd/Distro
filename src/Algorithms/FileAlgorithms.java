@@ -11,10 +11,12 @@ import java.io.File;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 
 import Exceptions.FileSyntaxException;
 import Exceptions.InvalidNameException;
 import Exceptions.ReseauInvalideException;
+import Exceptions.ReseauInvalideSyntaxException;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;
@@ -45,7 +47,8 @@ public class FileAlgorithms {
     // Verifie la syntaxe, l'ordre des definitions et les contraintes logiques au
     // fur et a mesure.
     public static Reseau chargerReseau(String cheminFichier)
-            throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException {
+            throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException,
+            ReseauInvalideSyntaxException {
         File fichier = new File(cheminFichier);
         if (!fichier.exists()) {
             throw new FileNotFoundException("Le fichier specifie est introuvable : " + cheminFichier);
@@ -64,6 +67,7 @@ public class FileAlgorithms {
         try (BufferedReader br = new BufferedReader(new FileReader(fichier))) {
             String ligne;
             int numeroLigne = 0;
+            List<FileSyntaxException> syntaxErrors = new ArrayList<>();
 
             while ((ligne = br.readLine()) != null) {
                 numeroLigne++;
@@ -77,10 +81,15 @@ public class FileAlgorithms {
                 if (!matcher.matches()) {
                     // Si la ligne ne ressemble pas a "type(arg1,arg2).", on arrete tout avec une
                     // erreur precise
-                    throw new FileSyntaxException(
+                    // System.out.println(new FileSyntaxException(
+                    // "Format incorrect ou parenthese/point manquant",
+                    // numeroLigne,
+                    // ligne).getMessage());
+                    syntaxErrors.add(new FileSyntaxException(
                             "Format incorrect ou parenthese/point manquant",
                             numeroLigne,
-                            ligne);
+                            ligne));
+                    continue; // skip to the next line on file
                 }
 
                 // On recupere les 3 morceaux de la ligne : le type (ex: generateur) et les deux
@@ -92,106 +101,155 @@ public class FileAlgorithms {
                 switch (type) {
                     case "generateur":
                         // Verifie qu'on n'a pas deja commence a definir des maisons ou connexions
-                        if (sectionEncours > 1)
-                            throw new FileSyntaxException(
-                                    "Les generateurs doivent etre definis en premier.", numeroLigne, ligne);
+                        if (sectionEncours > 1)// a deja validé des choses qui se trouvent apres les generateurs
+                            syntaxErrors.add(new FileSyntaxException(
+                                    "Les generateurs doivent etre definis en premier.", numeroLigne, ligne));
                         try {
                             int capacite = Integer.parseInt(arg2);
                             if (capacite <= 0) {
-                                throw new FileSyntaxException(
+                                syntaxErrors.add(new FileSyntaxException(
                                         "La capacite doit etre un entier strictement positif.",
                                         numeroLigne,
-                                        ligne);
+                                        ligne));
+                                break; // all the breaks here directly skip to the next line on file
                             }
 
                             Generateur gen = new Generateur(arg1, capacite);
                             try {
                                 reseau.addOrUpdateGenerateur(gen);
                             } catch (IllegalArgumentException e) {
-                                throw new FileSyntaxException(e.getMessage(), numeroLigne, ligne);
+                                syntaxErrors.add(new FileSyntaxException(e.getMessage(), numeroLigne, ligne));
+                                break;
                             }
                             generateurs.put(arg1, gen);
-
                             // On ajoute sa capacite au total disponible
                             sommeCapacitesGenerateurs += capacite;
                             sectionEncours = 1;
 
                         } catch (NumberFormatException e) {
-                            throw new FileSyntaxException("La capacite doit etre un entier.", numeroLigne, ligne);
+                            syntaxErrors.add(
+                                    new FileSyntaxException("La capacite doit etre un entier.", numeroLigne, ligne));
+                            break;
                         }
                         break;
                     case "maison":
                         // Verifie qu'on est bien apres les generateurs et avant les connexions
-                        if (sectionEncours > 2)
-                            throw new FileSyntaxException(
+                        if (sectionEncours > 2 || sectionEncours == 0) { // starts directly with maison or comes
+                                                                         // directly from the cnx section
+                            syntaxErrors.add(new FileSyntaxException(
                                     "Les maisons doivent etre definies apres les generateurs et avant les connexions.",
                                     numeroLigne,
-                                    ligne);
-
-                        try {
+                                    ligne));
+                        }
+                        // sectionEnCours ==1 (gen) or ==2 (maison) :
+                        try {// conso invalid verif try block
                             Consommation conso = Consommation.fromString(arg2);
                             Maison maison = new Maison(arg1, conso);
                             // On ajoute la consommation de cette maison au total demande
                             sommeBesoinsMaisons += conso.getValeurKw();
-                            if (generateurs.isEmpty()) {
-                                throw new FileSyntaxException(
-                                        "AUCUN GENERATEUR DEFINI: le reseau doit contenir au moins un generateur.",
-                                        numeroLigne,
-                                        ligne);
-                            }
                             // Verification immediate : est-ce que la demande depasse deja l'offre ?
-                            if (sommeBesoinsMaisons > sommeCapacitesGenerateurs) {
-                                throw new FileSyntaxException(
+                            if (sommeBesoinsMaisons > sommeCapacitesGenerateurs && generateurs.size() > 0) {
+                                syntaxErrors.add(new FileSyntaxException(
                                         "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' ("
                                                 + conso.getValeurKw() + "kW) " +
                                                 "porte la demande totale a " + sommeBesoinsMaisons
                                                 + "kW, ce qui depasse la capacite totale des generateurs (" +
                                                 sommeCapacitesGenerateurs + "kW).",
                                         numeroLigne,
-                                        ligne);
+                                        ligne));
                             }
                             reseau.addOrUpdateMaison(maison);
                             maisons.put(arg1, maison);
                             sectionEncours = 2;
 
                         } catch (IllegalArgumentException e) {
-                            throw new FileSyntaxException(
+                            syntaxErrors.add(new FileSyntaxException(
                                     "Type de consommation invalide/inattendu (Attendu: BASSE, NORMAL, FORTE)",
-                                    numeroLigne, ligne);
+                                    numeroLigne, ligne));
                         }
 
                         break;
                     case "connexion":
                         // Verifie qu'on a fini de definir toutes les maisons et generateurs
-                        if (sectionEncours < 2)
-                            throw new FileSyntaxException(
+                        if (sectionEncours == 1 || sectionEncours == 0) { // direct jump to connexion section from
+                                                                          // nowhere or from gen section
+                            syntaxErrors.add(new FileSyntaxException(
                                     "Les connexions doivent etre definies apres les generateurs et les maisons.",
-                                    numeroLigne, ligne);
-
-                        if (reseau.getMaisons().isEmpty()) {
-                            throw new FileSyntaxException(
-                                    "Aucune maison definie dans le fichier (section 'maison' manquante).",
-                                    numeroLigne,
-                                    ligne);
+                                    numeroLigne, ligne));
                         }
+
+                        // if (reseau.getMaisons().isEmpty()) {
+                        // syntaxErrors.add(new FileSyntaxException(
+                        // "Aucune maison definie dans le fichier (section 'maison' manquante).",
+                        // numeroLigne,
+                        // ligne));
+                        // break;
+                        // }
+                        // if (reseau.getGenerateurs().isEmpty()) {
+                        // syntaxErrors.add(new FileSyntaxException(
+                        // "Aucun generateur defini dans le fichier (section 'generateur' manquante).",
+                        // numeroLigne,
+                        // ligne));
+                        // break;
+                        // }
 
                         // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements
                         // existants)
-                        parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
+                        try {
+                            parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
+                        } catch (FileSyntaxException e) {
+                            syntaxErrors.add(e);
+                        }
                         sectionEncours = 3;
                         break;
                     default:
-                        System.out.println("type: " + type);
-                        throw new FileSyntaxException(
+                        // System.out.println("type: " + type + " ligne: " + ligne);
+                        syntaxErrors.add(new FileSyntaxException(
                                 "Premier mot de la ligne (le type) est inconnu, le nom de la ligne doit etre \"maison\" \"generateur\", ou \"connexion\", or on trouve: "
                                         + type,
-                                numeroLigne, ligne);
+                                numeroLigne, ligne));
                 }
             }
-            if (reseau.getConnexions().isEmpty()) {
-                throw new FileSyntaxException(
-                        "Aucune connexion definie dans le fichier (section 'connexion' manquante).",
-                        numeroLigne, ligne);
+            if (numeroLigne == 0) {
+                syntaxErrors.add(new FileSyntaxException(
+                        "FICHIER VIDE : le fichier d'entree ne contient rien.",
+                        0,
+                        ""));
+            } else if (sectionEncours == 0) {
+                syntaxErrors.add(new FileSyntaxException(
+                        "FICHIER INVALIDE : le fichier d'entree ne contient aucune definition valide, ni generateur, ni maison, ni connexion.",
+                        0,
+                        ""));
+
+            } else {
+                if (maisons.isEmpty()) {
+                    syntaxErrors.add(new FileSyntaxException(
+                            "AUCUNE MAISON DEFINIE: le reseau doit contenir au moins une maison.",
+                            numeroLigne,
+                            ligne));
+                }
+                if (generateurs.isEmpty()) {
+                    syntaxErrors.add(new FileSyntaxException(
+                            "AUCUN GENERATEUR DEFINI: le reseau doit contenir au moins un generateur.",
+                            numeroLigne,
+                            ligne));
+                }
+                if (reseau.getConnexions().isEmpty()) {
+                    if (sectionEncours == 3) {
+                        // we have already added an error for that case
+                        syntaxErrors.add(new FileSyntaxException(
+                                "AUCUNE CONNEXION VALIDE N'A ETE DEFINIE dans le fichier (section 'connexion' entierement invalide).",
+                                numeroLigne, ligne));
+                    } else
+                        syntaxErrors.add(new FileSyntaxException(
+                                "AUCUNE CONNEXION DEFINIE dans le fichier (section 'connexion' manquante).",
+                                numeroLigne, ligne));
+                }
+            }
+            // Si on a rencontre des erreurs de syntaxe, on les remonte toutes ensemble
+            if (!syntaxErrors.isEmpty()) {
+                System.out.println("throwing ReseauInvalideSyntaxException");
+                throw new ReseauInvalideSyntaxException(syntaxErrors);
             }
         } catch (IOException e) {
             throw new IOException("Erreur de lecture de ligne du fichier : " + fichier.toString(), e.getCause());
@@ -271,7 +329,8 @@ public class FileAlgorithms {
         // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier,
         // ex: "save.txt")
         if (fichierCible.getParent() == null) {
-            System.out.println("Aucun dossier specifie dans le chemin, Sauvegarde automatique dans le dossier 'instances'");
+            System.out.println(
+                    "Aucun dossier specifie dans le chemin, Sauvegarde automatique dans le dossier 'instances'");
             // On force le chemin vers le dossier "instances"
             File dossierInstances = new File("instances");
 
