@@ -1,0 +1,7 @@
+generateur(g1,10).
+generateur(g2,10).
+maison(m1,FORTE).
+maison(m2,BASSE).
+maison(m3,NORMAL).
+connexion(g1,m1).
+connexion(g2,m1).

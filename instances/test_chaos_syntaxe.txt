@@ -1,0 +1,8 @@
+generateur(g1,-50).
+generateur(g2,100)
+maison(m1,INCONNU).
+connexion(g1,m1).
+generateur(g3,20).
+chateau(c1,NORMAL).
+maison(m2,FORTE).
+connexion(gFantome,m2).
