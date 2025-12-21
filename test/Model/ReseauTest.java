@@ -67,8 +67,8 @@ class ReseauTest {
 
     assertTrue(problemes.stream().anyMatch(p -> p.startsWith("Aucune maison definie")));
     assertTrue(problemes.stream().anyMatch(p -> p.startsWith("Aucun generateur defini")));
-   }
-  
+  }
+
   @Test
   void validerConfiguration_reportsMissingConnection() {
     Reseau reseau = new Reseau();
@@ -80,7 +80,6 @@ class ReseauTest {
     assertEquals(1, problemes.size());
     assertTrue(
         problemes.stream().anyMatch(p -> p.startsWith("Aucune connexion definie entre maisons et generateurs.")));
-    // assertTrue(problemes.contains("M1 (pas de connexion)"));
   }
 
   @Test
@@ -94,7 +93,6 @@ class ReseauTest {
     assertEquals(1, problemes.size());
     assertTrue(problemes.get(0).contains("insuffisante"));
   }
-
 
   @Test
   void validerConfiguration_reportsMultipleConnections() {
