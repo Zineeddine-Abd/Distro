@@ -26,7 +26,6 @@ public class GeneticAlgorithm {
     private final List<String> nomsGenerateurs;
 
     // Generateur de nombres aleatoires (injectable pour les tests - FONCTIONNALITÉ
-    // SOURCE A)
     private final Random random;
 
     // Prepare l'algorithme en recuperant les listes de maisons et de generateurs
@@ -35,7 +34,7 @@ public class GeneticAlgorithm {
     }
 
     // Surcharge pour injecter un Random deterministe (utilise dans les tests pour
-    // eviter le flakiness - FONCTIONNALITÉ SOURCE A)
+    // eviter le flakiness - FONCTIONNALITÉ
     public GeneticAlgorithm(Reseau reseau, Random random) {
         this.reseauOriginal = reseau;
         this.nomsMaisons = new ArrayList<>(reseau.getMaisons().keySet());
@@ -48,13 +47,13 @@ public class GeneticAlgorithm {
     // lance plusieurs recherches en parallele sur le processeur, et applique la
     // meilleure solution trouvee a la fin.
     public void solve() {
-        // Validation (SOURCE A)
+        // Validation
         if (nomsGenerateurs.isEmpty() || nomsMaisons.isEmpty()) {
             throw new IllegalStateException(
                     "Le reseau doit contenir au moins un generateur et une maison avant l'optimisation.");
         }
 
-        // 1- Calcul Dynamique des Paramètres (VALEURS SOURCE B)
+        // 1- Calcul Dynamique des Paramètres
         int nbMaisons = nomsMaisons.size();
 
         // On adapte la taille de la population selon la taille du reseau (minimum 50
@@ -72,7 +71,7 @@ public class GeneticAlgorithm {
         // On regarde combien de coeurs a le processeur pour travailler plus vite
         int nbThreads = Runtime.getRuntime().availableProcessors();
         if (nbThreads < 1)
-            nbThreads = 1; // Securite (SOURCE B)
+            nbThreads = 1; // Securite
 
         ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
         List<Future<ResultatEvolution>> futures = new ArrayList<>();
@@ -111,16 +110,16 @@ public class GeneticAlgorithm {
                 }
             }
         } catch (InterruptedException | ExecutionException | RuntimeException e) {
-            // LOGIQUE SOURCE B : On ne plante pas, on loggue l'erreur et on passe au Plan B
+            // LOGIQUE : On ne plante pas, on loggue l'erreur et on passe au Plan B
             System.err.println(">> ERREUR CRITIQUE DANS LE MULTI-THREADING : " + e.getMessage());
             e.printStackTrace();
             meilleureSolutionGlobale = null; // Force le passage au plan B
         } finally {
             // On ferme proprement les outils de calcul parallele
-            executor.shutdownNow(); // ShutdownNow est plus sûr pour forcer l'arrêt (SOURCE B)
+            executor.shutdownNow(); // ShutdownNow est plus sûr pour forcer l'arrêt
         }
 
-        // --- PLAN B : Mode Secours (FONCTIONNALITÉ SOURCE B) ---
+        // --- PLAN B : Mode Secours ---
         // Si le multi-threading a echoué ou n'a rien trouvé, on execute l'algo sur le
         // thread principal
         if (meilleureSolutionGlobale == null) {

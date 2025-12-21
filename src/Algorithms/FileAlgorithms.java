@@ -432,8 +432,7 @@ public class FileAlgorithms {
 
         verifierNomsSansEspaces(reseau);
 
-        // 1- Verification et ajustement du chemin (Logique intelligente du 2ème
-        // fichier)
+        // 1- Verification et ajustement du chemin
         File fichierCible = new File(cheminFichier);
 
         // Si le fichier n'a pas de parent (c'est juste un nom de fichier sans dossier,

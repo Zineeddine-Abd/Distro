@@ -680,7 +680,6 @@ public class GraphicalView extends Application {
             menuActuel = 3;
             mettreAJourMenuInfo();
 
-            // Correction egalement ici pour ne pas supprimer les infos
             if (actionsBox != null) {
                 mettreAJourActions(actionsBox);
             }
