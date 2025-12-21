@@ -327,7 +327,7 @@ public class GraphicalView extends Application {
             if (dialogButton == btnAjouter) {
                 try {
                     String nom = nomField.getText().trim();
-                    validerNomSansEspaces(nom, "generateur");
+                    validerNomAlphanumerique(nom, "generateur");
 
                     int capacite = Integer.parseInt(capaciteField.getText().trim());
                     if (capacite <= 0) {
@@ -421,7 +421,7 @@ public class GraphicalView extends Application {
             if (dialogButton == btnAjouter) {
                 String nom = nomField.getText().trim();
                 try {
-                    validerNomSansEspaces(nom, "maison");
+                    validerNomAlphanumerique(nom, "maison");
                 } catch (InvalidNameException e) {
                     afficherErreur("Erreur", e.getMessage());
                     return null;
@@ -1150,13 +1150,14 @@ public class GraphicalView extends Application {
         }
     }
 
-    private void validerNomSansEspaces(String nom, String type) throws InvalidNameException {
+    private void validerNomAlphanumerique(String nom, String type) throws InvalidNameException {
         if (nom == null || nom.trim().isEmpty()) {
             throw new InvalidNameException("Le nom ne peut pas etre vide.");
         }
-        if (nom.matches(".*\\s+.*")) {
+        if (!nom.matches("[a-zA-Z0-9]+")) {
             throw new InvalidNameException(
-                    "Le nom du " + type + " ne doit pas contenir d'espaces. (Ex: G1, Maison2, etc ...)");
+                    "Le nom du " + type
+                            + " doit etre strictement alphanumerique (lettres et chiffres uniquement, sans espaces ni caracteres speciaux).");
         }
     }
 
