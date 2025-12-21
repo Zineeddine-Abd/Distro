@@ -291,14 +291,22 @@ public class FileAlgorithms {
         // check also if it's not the same generateur again, if it is the same
         // generateur add a warning...
         if (reseau.connexionExistePourMaison(nomMaison)) {
-            List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
-            String dejaConnecteA = gensConnectes.get(0); // length==1
-            // repeating connexion found this exception is also raised...
-            throw new FileSyntaxException(
-                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '" + dejaConnecteA
-                            + "'. "
-                            + "Impossible de la connecter aussi a '" + nomGen + "'.",
-                    line, content);
+            if (!reseau.getConnexions().get(nomMaison).contains(nomGen)) {
+                List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
+                String dejaConnecteA = gensConnectes.get(0); // length==1
+                // repeating connexion found this exception is also raised...
+                throw new FileSyntaxException(
+                        "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '"
+                                + dejaConnecteA
+                                + "'. "
+                                + "Impossible de la connecter aussi a '" + nomGen + "'.",
+                        line, content);
+            } else {
+                // repeating connexion found, here raise a warning and skip adding it again
+                System.out.println("Warning: Connexion ignorée - la maison '" + nomMaison
+                        + "' est deja connectee au generateur '" + nomGen + "'.");
+                return;
+            }
         }
 
         reseau.creerConnexion(nomMaison, nomGen);
