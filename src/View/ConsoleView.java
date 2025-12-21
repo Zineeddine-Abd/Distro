@@ -90,7 +90,7 @@ public class ConsoleView {
 
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
-
+                // Gerer les exceptions de l'extension
             } catch (InvalidFileExtensionException e) {
                 System.err.println("ERREUR FATALE : " + e.getMessage());
                 System.exit(1);
