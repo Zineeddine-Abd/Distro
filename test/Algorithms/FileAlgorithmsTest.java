@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 import Algorithms.FileAlgorithms;
 import Exceptions.FileSyntaxException;
 import Exceptions.InvalidFileExtensionException;
+import Exceptions.ReseauInvalideSyntaxException;
 import Exceptions.ReseauInvalideException;
 import Model.Consommation;
 import Model.Reseau;
@@ -46,62 +47,63 @@ class FileAlgorithmsTest {
   @Test
   void syntax_missingTrailingDot_throws() throws Exception {
     Path file = write("generateur(G1,50)");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void syntax_badKeyword_throws() throws Exception {
     Path file = write("bad(G1,10).", "maison(M1,BASSE).", "connexion(G1,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void syntax_wrongOrderConnexionBeforeMaisons_throws() throws Exception {
     Path file = write("generateur(G1,50).", "connexion(G1,M1).", "maison(M1,BASSE).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void syntax_wrongArity_throws() throws Exception {
     Path file = write("maison(M1).", "generateur(G1,50).", "connexion(G1,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void syntax_negativeCapacity_throws() throws Exception {
     Path file = write("generateur(G1,-5).", "maison(M1,BASSE).", "connexion(G1,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void syntax_invalidConsumption_throws() throws Exception {
     Path file = write("generateur(G1,50).", "maison(M1,LOW).", "connexion(G1,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void logical_connectionToUndefinedNode_throws() throws Exception {
     Path file = write("generateur(G1,50).", "connexion(G1,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void logical_duplicateConnectionSameHouse_throws() throws Exception {
     Path file = write("generateur(G1,50).", "generateur(G2,50).", "maison(M1,BASSE).",
         "connexion(G1,M1).", "connexion(G2,M1).");
-    assertThrows(FileSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void globalValidation_unconnectedHouse_throwsReseauInvalide() throws Exception {
     Path file = write("generateur(G1,50).", "maison(M1,BASSE).");
-    assertThrows(ReseauInvalideException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
+    // Absence de section connexion -> erreur de syntaxe agregee
+    assertThrows(ReseauInvalideSyntaxException.class, () -> FileAlgorithms.chargerReseau(file.toString()));
   }
 
   @Test
   void capacityOverflowDuringParse_throwsFileSyntaxException() throws Exception {
     Path file = write("generateur(G1,10).", "maison(M1,FORTE).", "connexion(G1,M1).");
-    FileSyntaxException ex = assertThrows(FileSyntaxException.class,
+    ReseauInvalideSyntaxException ex = assertThrows(ReseauInvalideSyntaxException.class,
         () -> FileAlgorithms.chargerReseau(file.toString()));
     assertTrue(ex.getMessage().contains("CAPACITE GLOBALE DEPASSEE"));
   }

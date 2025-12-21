@@ -346,7 +346,6 @@ public class FileAlgorithms {
             }
             // Si on a rencontre des erreurs de syntaxe, on les remonte toutes ensemble
             if (!syntaxErrors.isEmpty()) {
-                System.out.println("throwing ReseauInvalideSyntaxException");
                 throw new ReseauInvalideSyntaxException(syntaxErrors);
             }
         } catch (IOException e) {
@@ -426,7 +425,7 @@ public class FileAlgorithms {
 
     // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format
     // demande.
-        public static void sauvegarderReseau(Reseau reseau, String cheminFichier)
+    public static void sauvegarderReseau(Reseau reseau, String cheminFichier)
             throws IOException, InvalidNameException, InvalidFileExtensionException {
 
         cheminFichier = normalizeTxtPathForSave(cheminFichier);

@@ -2,6 +2,8 @@ package View;
 
 import static Model.Constants.*;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Scanner;
 import Algorithms.FileAlgorithms;
 import Algorithms.GeneticAlgorithm;
 import Controller.AppController;
+import Exceptions.FileSyntaxException;
 import Exceptions.InvalidFileExtensionException;
 import Exceptions.ReseauInvalideException;
 import Exceptions.ReseauInvalideSyntaxException;
@@ -99,17 +102,22 @@ public class ConsoleView {
                 System.err.println("ERREUR FATALE : Syntaxe invalide dans le fichier d entree.");
                 System.err.println(e.getMessage());
                 System.exit(1);
-            } catch (ReseauInvalideException e) {
+            } catch (ReseauInvalideException | FileSyntaxException e) {
                 // Gerer les erreurs de configuration logique du reseau
                 System.err.println("ERREUR FATALE : Le reseau charge est invalide.");
                 System.err.println(e.getMessage());
                 System.exit(1);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 // Gerer les erreurs de chargement du fichier
                 System.err.println("ERREUR FATALE : Impossible de charger le reseau.");
                 System.err.println(e.getMessage());
                 System.exit(1);
+            } catch (Exception e) {
+                System.err.println("Programme interrompu.");
+                e.printStackTrace();
+                System.exit(1);
             }
+
         }
     }
 
