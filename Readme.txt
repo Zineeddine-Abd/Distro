@@ -64,7 +64,7 @@
     ---------------------------------------------------------------------------------------------------------
 
     Fonctionnalités implementées : (100%)
-        - Lecture et parsing des fichiers d'instances de réseaux.
+        - Lecture et parsing des fichiers d'instances de réseaux avec gestion des exceptions et affichage complet des erreurs syntaxiques et logiques trouvés.
         — Implementation d'un algorithme stochastique inspiré de l'algorithme genetique avec une adaptation pertinente a notre probleme.
         - Implementation d'une interface graphique avec JavaFX pour visualiser les réseaux.
         - Implementation des tests unitaires pour valider les composants critiques de l'application.
