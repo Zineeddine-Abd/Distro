@@ -19,6 +19,7 @@ import java.util.Optional;
 import Algorithms.GeneticAlgorithm;
 import Algorithms.FileAlgorithms;
 import Controller.AppController;
+import Exceptions.InvalidFileExtensionException;
 import Exceptions.InvalidNameException;
 import Model.*;
 
@@ -940,7 +941,9 @@ public class GraphicalView extends Application {
                 return false;
             }
 
-            controller.chargerReseauDepuisFichier(chemin);
+            String cheminNormalise = FileAlgorithms.normalizeTxtPathForLoad(chemin);
+
+            controller.chargerReseauDepuisFichier(cheminNormalise);
             controller.getReseau().setLambda(lambda);
 
             List<String> warnings = FileAlgorithms.consumeLastLoadWarnings();
@@ -952,7 +955,7 @@ public class GraphicalView extends Application {
                 Alert info = new Alert(Alert.AlertType.INFORMATION);
                 info.setTitle("Fichier Charge");
                 info.setHeaderText("Reseau charge avec succes");
-                info.setContentText("Fichier: " + chemin + "\nLambda: " + lambda + "\n\n" +
+                info.setContentText("Fichier: " + cheminNormalise + "\nLambda: " + lambda + "\n\n" +
                         "Le Menu 3 est maintenant actif.");
                 info.showAndWait();
 
@@ -970,13 +973,17 @@ public class GraphicalView extends Application {
                     warn.showAndWait();
                 }
 
-                statusLabel.setText("Fichier charge: " + new File(chemin).getName() + " (lambda=" + lambda + ")");
+                statusLabel.setText(
+                        "Fichier charge: " + new File(cheminNormalise).getName() + " (lambda=" + lambda + ")");
             });
 
             return true;
 
         } catch (NumberFormatException e) {
             afficherErreur("Erreur Lambda", "La valeur de lambda doit etre un entier.");
+            return false;
+        } catch (InvalidFileExtensionException e) {
+            afficherErreur("Extension invalide", e.getMessage());
             return false;
         } catch (Exception e) {
             afficherErreur("Erreur de Chargement",

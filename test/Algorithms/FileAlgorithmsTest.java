@@ -14,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import Algorithms.FileAlgorithms;
 import Exceptions.FileSyntaxException;
+import Exceptions.InvalidFileExtensionException;
 import Exceptions.ReseauInvalideException;
 import Model.Consommation;
 import Model.Reseau;
@@ -135,6 +136,31 @@ class FileAlgorithmsTest {
     assertTrue(reloaded.connexionExiste("M1", "G1"));
     assertTrue(reloaded.connexionExiste("M2", "G2"));
     assertEquals(Model.Constants.LAMBDA, reloaded.getLambda());
+  }
+
+  @Test
+  void normalizeTxtPath_appendsTxtWhenMissing() throws Exception {
+    String normalized = FileAlgorithms.normalizeTxtPathForLoad("reseau");
+    assertTrue(normalized.endsWith(".txt"));
+  }
+
+  @Test
+  void normalizeTxtPath_rejectsNonTxtExtension() throws Exception {
+    assertThrows(InvalidFileExtensionException.class,
+        () -> FileAlgorithms.normalizeTxtPathForLoad("reseau.csv"));
+  }
+
+  @Test
+  void chargerReseau_acceptsPathWithoutExtension() throws Exception {
+    Path file = write("generateur(G1,50).", "maison(M1,BASSE).", "connexion(G1,M1).");
+
+    // Remove the ".txt" suffix from the path we pass in
+    String pathWithoutExt = file.toString().substring(0, file.toString().length() - 4);
+    Reseau reseau = FileAlgorithms.chargerReseau(pathWithoutExt);
+
+    assertTrue(reseau.generateurExiste("G1"));
+    assertTrue(reseau.maisonExiste("M1"));
+    assertTrue(reseau.connexionExiste("M1", "G1"));
   }
 
   private Path write(String... lines) throws IOException {

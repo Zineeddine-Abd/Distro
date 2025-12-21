@@ -7,6 +7,7 @@ import java.util.List;
 
 import Algorithms.FileAlgorithms;
 import Algorithms.ReseauAlgorithms;
+import Exceptions.InvalidFileExtensionException;
 import Exceptions.InvalidNameException;
 
 /**
@@ -31,7 +32,8 @@ public class AppController {
     }
 
     // Saves current network
-    public void sauvegarderReseau(String chemin) throws IOException, InvalidNameException {
+    public void sauvegarderReseau(String chemin)
+            throws IOException, InvalidNameException, InvalidFileExtensionException {
         FileAlgorithms.sauvegarderReseau(this.reseau, chemin);
     }
 

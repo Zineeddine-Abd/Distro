@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 
 import Exceptions.FileSyntaxException;
+import Exceptions.InvalidFileExtensionException;
 import Exceptions.InvalidNameException;
 import Exceptions.ReseauInvalideException;
 import Exceptions.ReseauInvalideSyntaxException;
@@ -49,6 +50,44 @@ public class FileAlgorithms {
         lastLoadWarnings = List.copyOf(warnings);
     }
 
+    public static String normalizeTxtPathForLoad(String path) throws InvalidFileExtensionException {
+        return normalizeTxtPath(path, true);
+    }
+
+    public static String normalizeTxtPathForSave(String path) throws InvalidFileExtensionException {
+        return normalizeTxtPath(path, true);
+    }
+
+    private static String normalizeTxtPath(String path, boolean appendIfMissing) throws InvalidFileExtensionException {
+        if (path == null) {
+            throw new InvalidFileExtensionException("Chemin de fichier invalide (null). Le fichier doit etre un .txt");
+        }
+        String trimmed = path.trim();
+        if (trimmed.isEmpty()) {
+            throw new InvalidFileExtensionException("Chemin de fichier invalide (vide). Le fichier doit etre un .txt");
+        }
+
+        int lastSlash = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'));
+        String fileName = (lastSlash >= 0) ? trimmed.substring(lastSlash + 1) : trimmed;
+
+        int dot = fileName.lastIndexOf('.');
+        if (dot < 0) {
+            if (appendIfMissing) {
+                return trimmed + ".txt";
+            }
+            throw new InvalidFileExtensionException(
+                    "Extension manquante : veuillez fournir un fichier .txt (ex: reseau.txt)");
+        }
+
+        String ext = fileName.substring(dot + 1);
+        if (!ext.equalsIgnoreCase("txt")) {
+            throw new InvalidFileExtensionException(
+                    "Extension invalide : '" + ext + "'. Le fichier doit avoir l'extension .txt");
+        }
+
+        return trimmed;
+    }
+
     // Une expression reguliere (regex) pour verifier que chaque ligne respecte le
     // format : mot(mot,mot).
     // Exemple valide : maison(M1,10).
@@ -68,9 +107,11 @@ public class FileAlgorithms {
     // fur et a mesure.
     public static Reseau chargerReseau(String cheminFichier)
             throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException,
-            ReseauInvalideSyntaxException {
+            ReseauInvalideSyntaxException, InvalidFileExtensionException {
         // Par defaut (si exception), pas d'avertissements a afficher.
         lastLoadWarnings = List.of();
+
+        cheminFichier = normalizeTxtPathForLoad(cheminFichier);
 
         File fichier = new File(cheminFichier);
         if (!fichier.exists()) {
@@ -385,7 +426,10 @@ public class FileAlgorithms {
 
     // Ecrit l'etat actuel du reseau dans un fichier texte, en respectant le format
     // demande.
-    public static void sauvegarderReseau(Reseau reseau, String cheminFichier) throws IOException, InvalidNameException {
+        public static void sauvegarderReseau(Reseau reseau, String cheminFichier)
+            throws IOException, InvalidNameException, InvalidFileExtensionException {
+
+        cheminFichier = normalizeTxtPathForSave(cheminFichier);
 
         verifierNomsSansEspaces(reseau);
 

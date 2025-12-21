@@ -11,6 +11,7 @@ import java.util.Scanner;
 import Algorithms.FileAlgorithms;
 import Algorithms.GeneticAlgorithm;
 import Controller.AppController;
+import Exceptions.InvalidFileExtensionException;
 import Exceptions.ReseauInvalideException;
 import Exceptions.ReseauInvalideSyntaxException;
 import Model.Generateur;
@@ -69,6 +70,7 @@ public class ConsoleView {
             }
 
             try {
+                cheminFichier = FileAlgorithms.normalizeTxtPathForLoad(cheminFichier);
                 System.out.println("Chargement du fichier : " + cheminFichier + " ...");
 
                 // 1- Charger et valider le reseau depuis le fichier
@@ -89,6 +91,9 @@ public class ConsoleView {
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
 
+            } catch (InvalidFileExtensionException e) {
+                System.err.println("ERREUR FATALE : " + e.getMessage());
+                System.exit(1);
             } catch (ReseauInvalideSyntaxException e) {
                 // Gerer les erreurs de syntaxe dans le fichier
                 System.err.println("ERREUR FATALE : Syntaxe invalide dans le fichier d entree.");
@@ -256,7 +261,7 @@ public class ConsoleView {
                         System.out.print("Entrez le nom du fichier de sauvegarde : ");
                         String savePath = scanner.nextLine();
                         try {
-                            controller.sauvegarderReseau(savePath);
+                            controller.sauvegarderReseau(FileAlgorithms.normalizeTxtPathForSave(savePath));
                         } catch (Exception e) {
                             System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
                         }

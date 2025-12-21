@@ -6,4 +6,5 @@ maison(maison2,FORTE).
 maison(maison3,BASSE).  
 connexion(gen1,maison1). 
 connexion(gen1,maison2). 
+connexion(maison2,gen1). 
 connexion(gen1,maison3).
