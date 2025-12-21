@@ -37,10 +37,23 @@ public class AppController {
         FileAlgorithms.sauvegarderReseau(this.reseau, chemin);
     }
 
+    private static void validerNomAlphanumerique(String nom, String type) throws InvalidNameException {
+        if (nom == null || nom.trim().isEmpty()) {
+            throw new InvalidNameException("Nom invalide (" + type + ") : vide.");
+        }
+        if (!nom.matches("[a-zA-Z0-9]+")) {
+            throw new InvalidNameException(
+                    "Nom invalide (" + type + ") : '" + nom + "' n'est pas alphanumerique. "
+                            + "Utilisez uniquement des lettres et des chiffres (sans espaces ni caracteres speciaux)."
+            );
+        }
+    }
+
     // --- Actions declenchees par le View ---
     // Ajoute ou met a jour un generateur dans le reseau
     // Retourne true si l'element existait deja (mis a jour), false sinon (ajout)
     public boolean addGenerateur(String nom, int capacite) {
+        validerNomAlphanumerique(nom, "generateur");
         if (capacite <= 0) {
             throw new IllegalArgumentException("La capacite d'un generateur doit etre un entier positif.");
         }
@@ -52,6 +65,7 @@ public class AppController {
     // Ajoute ou met a jour une maison dans le reseau
     // Retourne true si l'element existait deja (mis a jour), false sinon (ajout)
     public boolean addMaison(String nom, String type) throws IllegalArgumentException {
+        validerNomAlphanumerique(nom, "maison");
         Consommation conso = Consommation.fromString(type);
         boolean existed = reseau.maisonExiste(nom);
         reseau.addOrUpdateMaison(new Maison(nom, conso));

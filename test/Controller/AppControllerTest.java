@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import Exceptions.InvalidNameException;
 import Model.Consommation;
 import Model.Generateur;
 import Model.Maison;
@@ -31,6 +32,22 @@ class AppControllerTest {
 
     assertFalse(controller.addMaison("M1", "BASSE"));
     assertTrue(controller.addMaison("M1", "FORTE")); // update
+  }
+
+  @Test
+  void addGenerateur_rejectsNonAlphanumericName() {
+    AppController controller = new AppController(new Reseau());
+    assertThrows(InvalidNameException.class, () -> controller.addGenerateur("G_1", 10));
+    assertThrows(InvalidNameException.class, () -> controller.addGenerateur("G 1", 10));
+    assertThrows(InvalidNameException.class, () -> controller.addGenerateur("", 10));
+  }
+
+  @Test
+  void addMaison_rejectsNonAlphanumericName() {
+    AppController controller = new AppController(new Reseau());
+    assertThrows(InvalidNameException.class, () -> controller.addMaison("M-1", "BASSE"));
+    assertThrows(InvalidNameException.class, () -> controller.addMaison("M 1", "BASSE"));
+    assertThrows(InvalidNameException.class, () -> controller.addMaison("  ", "BASSE"));
   }
 
   @Test

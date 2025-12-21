@@ -307,11 +307,15 @@ public class ConsoleView {
             return;
         }
 
-        boolean existed = controller.addGenerateur(nom, capacite);
-        if (existed) {
-            afficherAvertissement("Le generateur " + nom + " a ete mis a jour avec succes.");
-        } else {
-            afficherMessage("Generateur " + nom + " ajoutee");
+        try {
+            boolean existed = controller.addGenerateur(nom, capacite);
+            if (existed) {
+                afficherAvertissement("Le generateur " + nom + " a ete mis a jour avec succes.");
+            } else {
+                afficherMessage("Generateur " + nom + " ajoutee");
+            }
+        } catch (IllegalArgumentException e) {
+            afficherErreur(e.getMessage());
         }
     }
 

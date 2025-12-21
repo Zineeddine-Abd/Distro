@@ -350,9 +350,14 @@ public class GraphicalView extends Application {
         Optional<Generateur> result = dialog.showAndWait();
         result.ifPresent(gen -> {
             if (controller.getReseau().generateurExiste(gen.getNom())) {
-                controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
-                rafraichirGraphe();
-                rafraichirInfos();
+                try {
+                    controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
+                    rafraichirGraphe();
+                    rafraichirInfos();
+                } catch (InvalidNameException e) {
+                    afficherErreur("Nom invalide", e.getMessage());
+                    return;
+                }
 
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Modification Generateur");
@@ -366,12 +371,18 @@ public class GraphicalView extends Application {
                 statusLabel.setText("Cliquez sur le graphe pour placer le generateur " + gen.getNom());
                 setActionsDisabled(true);
                 graphPane.attendreClicPourPosition(pos -> {
-                    controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
-                    graphPane.setPositionGenerateur(gen.getNom(), pos);
-                    rafraichirGraphe();
-                    rafraichirInfos();
-                    setActionsDisabled(false);
-                    statusLabel.setText("INFO: Generateur " + gen.getNom() + " ajoute.");
+                    try {
+                        controller.addGenerateur(gen.getNom(), gen.getCapaciteMax());
+                        graphPane.setPositionGenerateur(gen.getNom(), pos);
+                        rafraichirGraphe();
+                        rafraichirInfos();
+                        setActionsDisabled(false);
+                        statusLabel.setText("INFO: Generateur " + gen.getNom() + " ajoute.");
+                    } catch (InvalidNameException e) {
+                        setActionsDisabled(false);
+                        afficherErreur("Nom invalide", e.getMessage());
+                        statusLabel.setText("ERREUR: " + e.getMessage());
+                    }
                 }, true);
             }
         });
@@ -442,12 +453,18 @@ public class GraphicalView extends Application {
                     statusLabel.setText("Cliquez sur le graphe pour placer la maison " + maison.getNom());
                     setActionsDisabled(true);
                     graphPane.attendreClicPourPosition(pos -> {
-                        controller.addMaison(maison.getNom(), maison.getConsommation().name());
-                        graphPane.setPositionMaison(maison.getNom(), pos);
-                        rafraichirGraphe();
-                        rafraichirInfos();
-                        setActionsDisabled(false);
-                        statusLabel.setText("INFO: Maison " + maison.getNom() + " ajoutee.");
+                        try {
+                            controller.addMaison(maison.getNom(), maison.getConsommation().name());
+                            graphPane.setPositionMaison(maison.getNom(), pos);
+                            rafraichirGraphe();
+                            rafraichirInfos();
+                            setActionsDisabled(false);
+                            statusLabel.setText("INFO: Maison " + maison.getNom() + " ajoutee.");
+                        } catch (IllegalArgumentException e) {
+                            setActionsDisabled(false);
+                            afficherErreur("Erreur", e.getMessage());
+                            statusLabel.setText("ERREUR: " + e.getMessage());
+                        }
                     }, false);
                 }
             } catch (IllegalArgumentException e) {
