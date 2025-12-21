@@ -78,6 +78,14 @@ public class ConsoleView {
 
                 System.out.println("Fichier charge avec succes (Lambda = " + lambda + ").");
 
+                List<String> warnings = FileAlgorithms.consumeLastLoadWarnings();
+                if (!warnings.isEmpty()) {
+                    afficherAvertissement("Avertissements detectes lors du chargement :");
+                    for (String w : warnings) {
+                        afficherAvertissement(w);
+                    }
+                }
+
                 // 2- Declancher le menu de la partie 2
                 gererMenuResolution(controller);
 

@@ -29,6 +29,26 @@ import java.util.List;
 // Elle permet de charger un reseau depuis un fichier texte et de sauvegarder un reseau existant.
 public class FileAlgorithms {
 
+    // Avertissements (non bloquants) detectes lors du dernier chargement REUSSI et
+    // VALIDE.
+    // Ils ne doivent pas etre affiches si le chargement/validation echoue.
+    private static List<String> lastLoadWarnings = List.of();
+
+    /**
+     * Retourne les avertissements du dernier chargement reussi, puis reinitialise
+     * la liste.
+     * Si le chargement a echoue, la liste est vide.
+     */
+    public static List<String> consumeLastLoadWarnings() {
+        List<String> result = lastLoadWarnings;
+        lastLoadWarnings = List.of();
+        return result;
+    }
+
+    private static void setLastLoadWarnings(List<String> warnings) {
+        lastLoadWarnings = List.copyOf(warnings);
+    }
+
     // Une expression reguliere (regex) pour verifier que chaque ligne respecte le
     // format : mot(mot,mot).
     // Exemple valide : maison(M1,10).
@@ -49,6 +69,9 @@ public class FileAlgorithms {
     public static Reseau chargerReseau(String cheminFichier)
             throws FileNotFoundException, IOException, FileSyntaxException, ReseauInvalideException,
             ReseauInvalideSyntaxException {
+        // Par defaut (si exception), pas d'avertissements a afficher.
+        lastLoadWarnings = List.of();
+
         File fichier = new File(cheminFichier);
         if (!fichier.exists()) {
             throw new FileNotFoundException("Le fichier specifie est introuvable : " + cheminFichier);
@@ -63,6 +86,10 @@ public class FileAlgorithms {
         // Permet de suivre ou on en est dans le fichier pour imposer l'ordre :
         // 1: D'abord les Generateurs, 2: Ensuite les Maisons, 3: Enfin les Connexions.
         int sectionEncours = 0;
+
+        // Avertissements (non fatals) a montrer uniquement si le reseau charge est
+        // valide.
+        List<String> warnings = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(fichier))) {
             String ligne;
@@ -114,11 +141,24 @@ public class FileAlgorithms {
                                 break; // all the breaks here directly skip to the next line on file
                             }
 
+                            boolean genExisted = reseau.generateurExiste(arg1);
+                            if (genExisted) {
+                                int oldCapacite = reseau.getGenerateurs().get(arg1).getCapaciteMax();
+                                warnings.add("Ligne " + numeroLigne + " : le generateur '" + arg1
+                                        + "' est redeclare. Capacite mise a jour de " + oldCapacite + " a "
+                                        + capacite + " kW.");
+                                sommeCapacitesGenerateurs -= oldCapacite;
+                            }
+
                             Generateur gen = new Generateur(arg1, capacite);
                             try {
                                 reseau.addOrUpdateGenerateur(gen);
                             } catch (IllegalArgumentException e) {
                                 syntaxErrors.add(new FileSyntaxException(e.getMessage(), numeroLigne, ligne));
+                                // Si on avait soustrait l'ancienne capacite, on l'annule
+                                if (genExisted) {
+                                    sommeCapacitesGenerateurs += reseau.getGenerateurs().get(arg1).getCapaciteMax();
+                                }
                                 break;
                             }
                             generateurs.put(arg1, gen);
@@ -143,20 +183,37 @@ public class FileAlgorithms {
                         }
                         // sectionEnCours ==1 (gen) or ==2 (maison) :
                         try {// conso invalid verif try block
-                            Consommation conso = Consommation.fromString(arg2);
-                            Maison maison = new Maison(arg1, conso);
+                            Consommation consoMaison = Consommation.fromString(arg2);
+                            Maison maison = new Maison(arg1, consoMaison);
+                            boolean maisonExisted = reseau.maisonExiste(arg1);
+                            if (maisonExisted) {
+                                int ancienneConsoMaisonKw = reseau.getMaisons().get(arg1).getConsommationKw();
+                                warnings.add("Ligne " + numeroLigne + " : la maison '" + arg1
+                                        + "' est redeclaree. Consommation de la maison '" + arg1
+                                        + "' mise a jour de " + ancienneConsoMaisonKw
+                                        + " kW a "
+                                        + consoMaison.getValeurKw() + " kW.");
+                                sommeBesoinsMaisons -= ancienneConsoMaisonKw;
+                            }
                             // On ajoute la consommation de cette maison au total demande
-                            sommeBesoinsMaisons += conso.getValeurKw();
+                            sommeBesoinsMaisons += consoMaison.getValeurKw();
                             // Verification immediate : est-ce que la demande depasse deja l'offre ?
                             if (sommeBesoinsMaisons > sommeCapacitesGenerateurs && generateurs.size() > 0) {
                                 syntaxErrors.add(new FileSyntaxException(
                                         "CAPACITE GLOBALE DEPASSEE : L'ajout de la maison '" + arg1 + "' ("
-                                                + conso.getValeurKw() + "kW) " +
+                                                + consoMaison.getValeurKw() + "kW) " +
                                                 "porte la demande totale a " + sommeBesoinsMaisons
                                                 + "kW, ce qui depasse la capacite totale des generateurs (" +
                                                 sommeCapacitesGenerateurs + "kW).",
                                         numeroLigne,
                                         ligne));
+
+                                // Annule l'impact de la tentative pour eviter les effets de bord
+                                sommeBesoinsMaisons -= consoMaison.getValeurKw();
+                                if (maisonExisted) {
+                                    sommeBesoinsMaisons += reseau.getMaisons().get(arg1).getConsommationKw();
+                                }
+                                break;
                             }
                             reseau.addOrUpdateMaison(maison);
                             maisons.put(arg1, maison);
@@ -196,7 +253,7 @@ public class FileAlgorithms {
                         // Traite la connexion et verifie qu'elle est valide (pas de doublon, elements
                         // existants)
                         try {
-                            parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne);
+                            parseEtValiderConnexion(reseau, arg1, arg2, numeroLigne, ligne, warnings);
                         } catch (FileSyntaxException e) {
                             syntaxErrors.add(e);
                         }
@@ -259,6 +316,9 @@ public class FileAlgorithms {
         // (ex: est-ce que toutes les maisons sont bien connectees ?)
         validerCompletude(reseau);
 
+        // Chargement + validation reussis : on expose les avertissements au caller.
+        setLastLoadWarnings(warnings);
+
         return reseau;
     }
 
@@ -266,7 +326,8 @@ public class FileAlgorithms {
     // generateur,
     // puis verifie qu'on n'essaie pas de connecter une maison qui a deja un
     // generateur.
-    private static void parseEtValiderConnexion(Reseau reseau, String arg1, String arg2, int line, String content)
+    private static void parseEtValiderConnexion(Reseau reseau, String arg1, String arg2, int line, String content,
+            List<String> warnings)
             throws FileSyntaxException {
         String nomMaison = null;
         String nomGen = null;
@@ -287,26 +348,24 @@ public class FileAlgorithms {
                     line, content);
         }
 
+        // Connexion deja declaree (meme paire, y compris si l'utilisateur inverse les
+        // arguments)
+        if (reseau.connexionExiste(nomMaison, nomGen)) {
+            warnings.add("Ligne " + line + " : la connexion ('" + nomMaison + "', '" + nomGen
+                    + "') est redeclaree. Elle est ignoree.");
+            return;
+        }
+
         // Verifie la regle d'unicite : une maison ne peut avoir qu'un seul generateur
-        // check also if it's not the same generateur again, if it is the same
-        // generateur add a warning...
         if (reseau.connexionExistePourMaison(nomMaison)) {
-            if (!reseau.getConnexions().get(nomMaison).contains(nomGen)) {
-                List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
-                String dejaConnecteA = gensConnectes.get(0); // length==1
-                // repeating connexion found this exception is also raised...
-                throw new FileSyntaxException(
-                        "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '"
-                                + dejaConnecteA
-                                + "'. "
-                                + "Impossible de la connecter aussi a '" + nomGen + "'.",
-                        line, content);
-            } else {
-                // repeating connexion found, here raise a warning and skip adding it again
-                System.out.println("Warning: Connexion ignorée - la maison '" + nomMaison
-                        + "' est deja connectee au generateur '" + nomGen + "'.");
-                return;
-            }
+            List<String> gensConnectes = reseau.getConnexions().get(nomMaison);
+            String dejaConnecteA = gensConnectes.get(0); // length==1
+            throw new FileSyntaxException(
+                    "ERREUR LOGIQUE : La maison '" + nomMaison + "' est deja connectee au generateur '"
+                            + dejaConnecteA
+                            + "'. "
+                            + "Impossible de la connecter aussi a '" + nomGen + "'.",
+                    line, content);
         }
 
         reseau.creerConnexion(nomMaison, nomGen);

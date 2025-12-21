@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import Algorithms.GeneticAlgorithm;
+import Algorithms.FileAlgorithms;
 import Controller.AppController;
 import Exceptions.InvalidNameException;
 import Model.*;
@@ -942,6 +943,8 @@ public class GraphicalView extends Application {
             controller.chargerReseauDepuisFichier(chemin);
             controller.getReseau().setLambda(lambda);
 
+            List<String> warnings = FileAlgorithms.consumeLastLoadWarnings();
+
             javafx.application.Platform.runLater(() -> {
                 rafraichirGraphe();
                 rafraichirInfos();
@@ -952,6 +955,20 @@ public class GraphicalView extends Application {
                 info.setContentText("Fichier: " + chemin + "\nLambda: " + lambda + "\n\n" +
                         "Le Menu 3 est maintenant actif.");
                 info.showAndWait();
+
+                if (!warnings.isEmpty()) {
+                    Alert warn = new Alert(Alert.AlertType.WARNING);
+                    warn.setTitle("Avertissements de Chargement");
+                    warn.setHeaderText("Le reseau est valide, mais des avertissements ont ete detectes");
+
+                    TextArea textArea = new TextArea(String.join("\n", warnings));
+                    textArea.setEditable(false);
+                    textArea.setWrapText(true);
+                    textArea.setPrefSize(600, 400);
+                    warn.getDialogPane().setContent(textArea);
+
+                    warn.showAndWait();
+                }
 
                 statusLabel.setText("Fichier charge: " + new File(chemin).getName() + " (lambda=" + lambda + ")");
             });
@@ -1195,7 +1212,7 @@ public class GraphicalView extends Application {
 
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titre);
-        // Mettre un HeaderText pour separer  l'icône du contenu
+        // Mettre un HeaderText pour separer l'icône du contenu
         alert.setHeaderText("Une erreur est survenue :");
 
         TextArea textArea = new TextArea(message);
